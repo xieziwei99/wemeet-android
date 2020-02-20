@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.amap.api.maps.MapView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="9"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <Button
+                android:id="@+id/button_logout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="@string/退出登录"
+                android:onClick="logout"
+                android:layout_weight="1"
+                style="?android:attr/borderlessButtonStyle"
+                tools:ignore="NestedWeights" />
+            <Button
+                android:id="@+id/button_plant_bugs"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="@string/种植虫子"
+                android:onClick="plantBugs"
+                android:layout_weight="1"
+                style="?android:attr/borderlessButtonStyle" />
+            <Button
+                android:id="@+id/button_user_center"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="@string/个人中心"
+                android:onClick="gotoUserCenter"
+                android:layout_weight="1"
+                style="?android:attr/borderlessButtonStyle"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">WeMeet</string>
+    <string name="请回答以下问题">请回答以下问题</string>
+    <string name="TextView">TextView</string>
+    <string name="Button">Button</string>
+    <string name="radiobutton">radiobutton</string>
+    <string name="邮箱">邮箱</string>
+    <string name="密码">密码</string>
+    <string name="登录">登录</string>
+    <string name="退出登录">退出登录</string>
+    <string name="个人中心">个人中心</string>
+    <string name="会员号">会员号</string>
+    <string name="用户名">用户名</string>
+    <string name="微觅币">微觅币</string>
+    <string name="种植虫子">种植虫子</string>
+    <string name="类型">类型</string>
+    <string name="题目">题目</string>
+    <string name="输入题目">输入题目</string>
+    <string name="输入选项">输入选项</string>
+    <string name="A">A</string>
+    <string name="B">B</string>
+    <string name="C">C</string>
+    <string name="D">D</string>
+    <string name="设置正确答案">设置正确答案</string>
+    <string name="设置金币数">设置虫子所携带金币数，这将从你账户的微觅币中扣除</string>
+    <string name="输入金币数">输入金币数</string>
+    <string name="确认添加">确认添加</string>
+</resources>
