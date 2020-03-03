@@ -25,4 +25,5 @@
     <string name="设置金币数">设置虫子所携带金币数，这将从你账户的微觅币中扣除</string>
     <string name="输入金币数">输入金币数</string>
     <string name="确认添加">确认添加</string>
+    <string name="刷新一下">刷新一下</string>
 </resources>

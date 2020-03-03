@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
+import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
@@ -28,12 +30,15 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
+import com.example.wemeet.pojo.CatcherBugRecord;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
+import com.example.wemeet.util.MarkerInfo;
 import com.example.wemeet.util.NetworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -131,11 +136,14 @@ public class MainActivity extends AppCompatActivity {
 
         // 对每个marker设置一个点击事件
         aMap.setOnInfoWindowClickListener(marker -> {
-            Bug bug = (Bug) marker.getObject();
-            if (bug != null) {
+            MarkerInfo info = (MarkerInfo) marker.getObject();
+            if (info.getBug() != null) {
                 Intent intent = new Intent(this, ShowQuestionActivity.class);
-                intent.putExtra("bug", bug);
+                intent.putExtra("bug", info.getBug());
+                intent.putExtra("caught", info.isCaught());
+                intent.putExtra("userAnswer", info.getUserAnswer());
                 startActivity(intent);
+                marker.destroy();   // TODO: 2020/2/24 如何刷新标记状态，使得其为“被点击过”的状态
             }
         });
 
@@ -171,17 +179,47 @@ public class MainActivity extends AppCompatActivity {
                 .enqueue(new Callback<List<Bug>>() {
                     @Override
                     public void onResponse(Call<List<Bug>> call, Response<List<Bug>> response) {
-                        List<Bug> body = response.body();
-                        if (body != null) {
-                            for (Bug bug : body) {
-                                Marker marker = aMap.addMarker(new MarkerOptions().position(new LatLng(
-                                        bug.getBugProperty().getStartLatitude(), bug.getBugProperty().getStartLongitude()))
-                                        .title(bug.getChoiceQuestion().getScore() + "分虫")   // TODO: 2020/2/6 需要改进逻辑
-//                                        .title("第" + bug.getBugProperty().getBugID() + "号虫子")
-                                        .snippet("发布时间：" + bug.getBugProperty().getStartTime().toString() + "\n点击进行捕捉"));
-                                marker.setObject(bug);
-                                markerList.add(marker);
-                            }
+                        List<Bug> aroundBugs = response.body();
+
+                        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
+                        String email = settings.getString(LoginActivity.USER_EMAIL, "error");
+                        if (!"error".equals(email)) {
+                            request.getCatchRecordsByEmail(email).enqueue(new Callback<Set<CatcherBugRecord>>() {
+                                @Override
+                                public void onResponse(Call<Set<CatcherBugRecord>> call, Response<Set<CatcherBugRecord>> response) {
+                                    Set<CatcherBugRecord> records = response.body();
+
+                                    if (aroundBugs != null) {
+                                        for (Bug bug : aroundBugs) {
+                                            Marker marker = aMap.addMarker(new MarkerOptions().position(new LatLng(
+                                                    bug.getBugProperty().getStartLatitude(), bug.getBugProperty().getStartLongitude()))
+                                                    .title("第" + bug.getBugProperty().getBugID() + "号虫子")
+                                                    .snippet("发布时间：" + bug.getBugProperty().getStartTime().toString() + "\n"
+                                                            + "剩余可捉次数：" + bug.getBugProperty().getRestLifeCount() + "\n"
+                                                            + "点击进行捕捉")
+                                            );
+                                            MarkerInfo info = new MarkerInfo();
+                                            info.setBug(bug).setCaught(false).setUserAnswer(null);
+                                            if (records != null) {
+                                                for (CatcherBugRecord record : records) {
+                                                    if (record.getCaughtBug().equals(bug.getBugProperty())) {
+                                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.gray)));
+                                                        marker.setSnippet("你已经捉过了哦！\n" + "点击可查看详细情况");
+                                                        info.setCaught(true).setUserAnswer(record.getUserAnswer());
+                                                    }
+                                                }
+                                            }
+                                            marker.setObject(info);
+                                            markerList.add(marker);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<Set<CatcherBugRecord>> call, Throwable t) {
+
+                                }
+                            });
                         }
                     }
 

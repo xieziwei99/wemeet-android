@@ -12,10 +12,15 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.wemeet.pojo.Bug;
+import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.ChoiceQuestion;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.NetworkUtil;
 import com.example.wemeet.util.ReturnVO;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,6 +30,7 @@ public class ShowQuestionActivity extends AppCompatActivity {
     private String message = "";
     //    private boolean right = false;
     private double score;
+    private String userAnswer = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +61,18 @@ public class ShowQuestionActivity extends AppCompatActivity {
                 buttonD.setVisibility(View.GONE);
             }
         }
+
+        boolean caught = intent.getBooleanExtra("caught", false);
+        if (caught) {
+            String userAnswer = intent.getStringExtra("userAnswer");
+            List<String> answerList = new ArrayList<>(Arrays.asList("A", "B", "C", "D"));
+            int checkedIndex = answerList.indexOf(userAnswer);
+            RadioGroup radioGroup = findViewById(R.id.radio_group_choices);
+            ((RadioButton) radioGroup.getChildAt(checkedIndex)).setChecked(true);
+            for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                radioGroup.getChildAt(i).setEnabled(false);
+            }
+        }
     }
 
     public void showAnswerResult(View view) {
@@ -73,7 +91,7 @@ public class ShowQuestionActivity extends AppCompatActivity {
         if (bug.getBugProperty().getBugContent().getType() == 1) {
             ChoiceQuestion bugContent = bug.getChoiceQuestion();
             String correctAnswer = bugContent.getCorrectAnswer().toUpperCase();
-            String userAnswer = "";
+            userAnswer = "";
             switch (view.getId()) {
                 case R.id.radioButtonA:
                     if (checked) {
@@ -124,7 +142,19 @@ public class ShowQuestionActivity extends AppCompatActivity {
             });
 
             // 通过bug.getBugProperty().getBugID()和email 建立虫子与用户间，捕捉与被捕捉的关系
+            NetworkUtil.getRetrofit().create(BugInterface.class)
+                    .addUserCatchesBugConstraint(bug.getBugProperty().getBugID(), email, userAnswer)
+                    .enqueue(new Callback<ReturnVO>() {
+                        @Override
+                        public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
 
+                        }
+
+                        @Override
+                        public void onFailure(Call<ReturnVO> call, Throwable t) {
+                            t.printStackTrace();
+                        }
+                    });
         }
 
         new AlertDialog.Builder(this)
@@ -132,11 +162,6 @@ public class ShowQuestionActivity extends AppCompatActivity {
                 .setMessage(message)
                 .setPositiveButton("确定", (dialog, which) -> {
                     dialog.cancel();
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     ShowQuestionActivity.this.finish();
                 })
                 .setNeutralButton("再看看", null)

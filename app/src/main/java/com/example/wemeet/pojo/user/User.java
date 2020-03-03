@@ -1,8 +1,12 @@
 package com.example.wemeet.pojo.user;
 
+import com.example.wemeet.pojo.CatcherBugRecord;
+
 import java.io.Serializable;
+import java.util.Set;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -38,4 +42,27 @@ public class User implements Serializable {
      * 代表用户等级
      */
     private Integer grade;
+
+//    private List<BugProperty> caughtBugs;
+    @ToString.Exclude
+    private Set<CatcherBugRecord> catchRecords;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        User user = (User) o;
+
+        return id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

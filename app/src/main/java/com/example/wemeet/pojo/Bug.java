@@ -1,6 +1,7 @@
 package com.example.wemeet.pojo;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import lombok.Data;
 
@@ -17,4 +18,17 @@ public class Bug implements Serializable {
     private Moment moment;
     private ChoiceQuestion choiceQuestion;
     private NarrativeQuestion narrativeQuestion;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bug bug = (Bug) o;
+        return Objects.equals(bugProperty, bug.bugProperty);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bugProperty);
+    }
 }
