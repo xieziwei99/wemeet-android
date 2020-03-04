@@ -18,6 +18,7 @@ public class Bug implements Serializable {
     private Moment moment;
     private ChoiceQuestion choiceQuestion;
     private NarrativeQuestion narrativeQuestion;
+    private VirusPoint virusPoint;
 
     @Override
     public boolean equals(Object o) {

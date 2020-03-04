@@ -21,7 +21,7 @@ public class BugContent implements Serializable {
     private Long bugContentId;
 
     /**
-     * 0代表微信朋友圈的动态，1代表选择题，2代表叙述题，3代表游戏
+     * 0代表微信朋友圈的动态，1代表选择题，2代表叙述题，3代表游戏，4代表疫情点
      */
     private Integer type;
 

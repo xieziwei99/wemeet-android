@@ -1,12 +1,14 @@
 package com.example.wemeet;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -34,10 +36,12 @@ import com.example.wemeet.pojo.CatcherBugRecord;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.MarkerInfo;
+import com.example.wemeet.util.MathUtil;
 import com.example.wemeet.util.NetworkUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import retrofit2.Call;
@@ -75,13 +79,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
         }
 
-        // 是否登录
-        if (!hasLoggedIn()) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            MainActivity.this.finish();
-        }
-
         // 初始化地图
         mapView = findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
@@ -98,42 +95,6 @@ public class MainActivity extends AppCompatActivity {
         aMap.getUiSettings().setScaleControlsEnabled(true);
         aMap.setMyLocationEnabled(true);
 
-        // 定位
-//        locationClient = new AMapLocationClient(getApplicationContext());
-//        locationListener = location -> {
-//            if (location != null) {
-//                if (location.getErrorCode() == 0) {
-//                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-//                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
-//                } else {    // 定位失败
-//                    Log.e("AMapError", "location Error, ErrCode:"
-//                            + location.getErrorCode() + ", errInfo:"
-//                            + location.getErrorInfo());
-//                }
-//            }
-//        };
-//        locationClient.setLocationListener(locationListener);
-//        option = new AMapLocationClientOption();
-//        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-//                .setOnceLocation(true);
-//        locationClient.setLocationOption(option);
-//        locationClient.startLocation();
-
-        // 设置option场景
-//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
-//        if (null != locationClient) {
-//            locationClient.setLocationOption(option);
-//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
-//            locationClient.stopLocation();
-//            locationClient.startLocation();
-//        }
-
-        showAroundBugs(116.22, 39.99);
-        // 初始视角移动到北邮
-        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                new LatLng(39.9643, 116.3557), 16, 0, 0)));
-//        aMap.setOnMapLongClickListener(latLng -> aMap.addMarker(new MarkerOptions().position(latLng).title("北京").snippet("DefaultMarker").draggable(true)));
-
         // 对每个marker设置一个点击事件
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
@@ -143,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("caught", info.isCaught());
                 intent.putExtra("userAnswer", info.getUserAnswer());
                 startActivity(intent);
-                marker.destroy();   // TODO: 2020/2/24 如何刷新标记状态，使得其为“被点击过”的状态
             }
         });
 
@@ -152,12 +112,6 @@ public class MainActivity extends AppCompatActivity {
                 marker1.hideInfoWindow();
             }
         }));
-    }
-
-    // 判断用户是否登录
-    public boolean hasLoggedIn() {
-        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
-        return settings.getBoolean(LoginActivity.LOGGED_IN, false);
     }
 
     // 需要重载回调函数：用户对权限申请做出相应操作后执行
@@ -191,25 +145,39 @@ public class MainActivity extends AppCompatActivity {
 
                                     if (aroundBugs != null) {
                                         for (Bug bug : aroundBugs) {
-                                            Marker marker = aMap.addMarker(new MarkerOptions().position(new LatLng(
-                                                    bug.getBugProperty().getStartLatitude(), bug.getBugProperty().getStartLongitude()))
-                                                    .title("第" + bug.getBugProperty().getBugID() + "号虫子")
-                                                    .snippet("发布时间：" + bug.getBugProperty().getStartTime().toString() + "\n"
-                                                            + "剩余可捉次数：" + bug.getBugProperty().getRestLifeCount() + "\n"
-                                                            + "点击进行捕捉")
-                                            );
-                                            MarkerInfo info = new MarkerInfo();
-                                            info.setBug(bug).setCaught(false).setUserAnswer(null);
-                                            if (records != null) {
-                                                for (CatcherBugRecord record : records) {
-                                                    if (record.getCaughtBug().equals(bug.getBugProperty())) {
-                                                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.gray)));
-                                                        marker.setSnippet("你已经捉过了哦！\n" + "点击可查看详细情况");
-                                                        info.setCaught(true).setUserAnswer(record.getUserAnswer());
+                                            Marker marker = null;
+                                            if (bug.getBugProperty().getBugContent().getType() == 1) {
+                                                marker = aMap.addMarker(new MarkerOptions().position(new LatLng(
+                                                        bug.getBugProperty().getStartLatitude(), bug.getBugProperty().getStartLongitude()))
+                                                        .title("第" + bug.getBugProperty().getBugID() + "号虫子")
+                                                        .snippet("发布时间：" + bug.getBugProperty().getStartTime().toString() + "\n"
+                                                                + "剩余可捉次数：" + bug.getBugProperty().getRestLifeCount() + "\n"
+                                                                + "点击进行捕捉")
+                                                );
+                                                MarkerInfo info = new MarkerInfo();
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null);
+                                                if (records != null) {
+                                                    for (CatcherBugRecord record : records) {
+                                                        if (record.getCaughtBug().equals(bug.getBugProperty())) {
+                                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.gray)));
+                                                            marker.setSnippet("你已经捉过了哦！\n" + "点击可查看详细情况");
+                                                            info.setCaught(true).setUserAnswer(record.getUserAnswer());
+                                                        }
                                                     }
                                                 }
+                                                marker.setObject(info);
+                                            } else if (bug.getBugProperty().getBugContent().getType() == 4) {
+                                                double userLat = aMap.getMyLocation().getLatitude();
+                                                double userLon = aMap.getMyLocation().getLongitude();
+                                                double bugLat = bug.getBugProperty().getStartLatitude();
+                                                double bugLon = bug.getBugProperty().getStartLongitude();
+                                                marker = aMap.addMarker(new MarkerOptions()
+                                                        .position(new LatLng(bugLat, bugLon))
+                                                        .title(getString(R.string.疫情点))
+                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米", MathUtil.getDistance(bugLat, bugLon, userLat, userLon)))
+                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
+                                                );
                                             }
-                                            marker.setObject(info);
                                             markerList.add(marker);
                                         }
                                     }
@@ -287,12 +255,77 @@ public class MainActivity extends AppCompatActivity {
             plantBugButton.setText("确认");
         }
         if ("确认".equals(command)) {
-//            Log.e("AMap", marker.getPosition().toString());
-            Intent intent = new Intent(MainActivity.this, AddBugActivity.class);
-            intent.putExtra("lat", marker.getPosition().latitude);
-            intent.putExtra("lon", marker.getPosition().longitude);
-            startActivity(intent);
+            // 弹窗让用户选择种植虫子的类型
+            String[] typeChoices = {getString(R.string.单项选择题), getString(R.string.疫情点)};
+            final int[] typeChosen = new int[1];    // FIXME: 2020/3/3 可否更好的解决
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("WeMeet 选择虫子类型")
+                    .setSingleChoiceItems(typeChoices, 0, (dialog, which) -> typeChosen[0] = which)
+                    .setPositiveButton("确定", (dialog, which) -> {
+                        Intent intent = new Intent(MainActivity.this, AddBugActivity.class);
+                        switch (typeChosen[0]) {
+                            case 0:
+                                intent.putExtra("type", 1);
+                                break;
+                            case 1:
+                                intent.putExtra("type", 4);
+                                break;
+                            default:
+                                break;
+                        }
+                        intent.putExtra("lat", marker.getPosition().latitude);
+                        intent.putExtra("lon", marker.getPosition().longitude);
+                        startActivity(intent);
+                    })
+                    .create()
+                    .show();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // 每次start都会重新加载大量虫子（如果有的话）
+        showAroundBugs(116.22, 39.99);
+//        // 初始视角移动到北邮
+//        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+//                new LatLng(39.9643, 116.3557), 16, 0, 0)));
+
+        // 定位
+        locationClient = new AMapLocationClient(getApplicationContext());
+        locationListener = location -> {
+            if (location != null) {
+                if (location.getErrorCode() == 0) {
+                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                } else {    // 定位失败
+                    Log.e("AMapError", "location Error, ErrCode:"
+                            + location.getErrorCode() + ", errInfo:"
+                            + location.getErrorInfo());
+                }
+            }
+        };
+        locationClient.setLocationListener(locationListener);
+        option = new AMapLocationClientOption();
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
+                .setOnceLocation(true);
+        locationClient.setLocationOption(option);
+        locationClient.startLocation();
+
+        // 设置option场景
+//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
+//        if (null != locationClient) {
+//            locationClient.setLocationOption(option);
+//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+//            locationClient.stopLocation();
+//            locationClient.startLocation();
+//        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        aMap.clear();
     }
 
     // 地图生命周期的管理，好像不写也没什么影响

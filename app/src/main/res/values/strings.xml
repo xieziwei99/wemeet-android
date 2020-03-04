@@ -26,4 +26,8 @@
     <string name="输入金币数">输入金币数</string>
     <string name="确认添加">确认添加</string>
     <string name="刷新一下">刷新一下</string>
+    <string name="单项选择题">单项选择题</string>
+    <string name="疫情点">疫情点</string>
+    <string name="添加描述">添加描述</string>
+    <string name="no_thank_you">没有什么想说的</string>
 </resources>
