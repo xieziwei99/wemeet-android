@@ -30,8 +30,10 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.utils.overlay.MovingPointOverlay;
 import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
+import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.CatcherBugRecord;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
@@ -39,6 +41,7 @@ import com.example.wemeet.util.MarkerInfo;
 import com.example.wemeet.util.MathUtil;
 import com.example.wemeet.util.NetworkUtil;
 
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -146,19 +149,20 @@ public class MainActivity extends AppCompatActivity {
                                     if (aroundBugs != null) {
                                         for (Bug bug : aroundBugs) {
                                             Marker marker = null;
-                                            if (bug.getBugProperty().getBugContent().getType() == 1) {
+                                            final BugProperty bugProperty = bug.getBugProperty();
+                                            if (bugProperty.getBugContent().getType() == 1) {
                                                 marker = aMap.addMarker(new MarkerOptions().position(new LatLng(
-                                                        bug.getBugProperty().getStartLatitude(), bug.getBugProperty().getStartLongitude()))
-                                                        .title("第" + bug.getBugProperty().getBugID() + "号虫子")
-                                                        .snippet("发布时间：" + bug.getBugProperty().getStartTime().toString() + "\n"
-                                                                + "剩余可捉次数：" + bug.getBugProperty().getRestLifeCount() + "\n"
+                                                        bugProperty.getStartLatitude(), bugProperty.getStartLongitude()))
+                                                        .title("第" + bugProperty.getBugID() + "号虫子")
+                                                        .snippet("发布时间：" + bugProperty.getStartTime().toString() + "\n"
+                                                                + "剩余可捉次数：" + bugProperty.getRestLifeCount() + "\n"
                                                                 + "点击进行捕捉")
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
                                                 info.setBug(bug).setCaught(false).setUserAnswer(null);
                                                 if (records != null) {
                                                     for (CatcherBugRecord record : records) {
-                                                        if (record.getCaughtBug().equals(bug.getBugProperty())) {
+                                                        if (record.getCaughtBug().equals(bugProperty)) {
                                                             marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.gray)));
                                                             marker.setSnippet("你已经捉过了哦！\n" + "点击可查看详细情况");
                                                             info.setCaught(true).setUserAnswer(record.getUserAnswer());
@@ -166,11 +170,11 @@ public class MainActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 marker.setObject(info);
-                                            } else if (bug.getBugProperty().getBugContent().getType() == 4) {
+                                            } else if (bugProperty.getBugContent().getType() == 4) {
                                                 double userLat = aMap.getMyLocation().getLatitude();
                                                 double userLon = aMap.getMyLocation().getLongitude();
-                                                double bugLat = bug.getBugProperty().getStartLatitude();
-                                                double bugLon = bug.getBugProperty().getStartLongitude();
+                                                double bugLat = bugProperty.getStartLatitude();
+                                                double bugLon = bugProperty.getStartLongitude();
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
@@ -179,6 +183,17 @@ public class MainActivity extends AppCompatActivity {
                                                 );
                                             }
                                             markerList.add(marker);
+
+                                            // make markers movable
+                                            MovingPointOverlay smoothMoveMarker = new MovingPointOverlay(aMap, marker);
+                                            List<LatLng> points = new ArrayList<LatLng>(){{
+                                                add(new LatLng(bugProperty.getStartLatitude(), bugProperty.getStartLongitude()));
+                                                add(new LatLng(bugProperty.getDestLatitude(), bugProperty.getDestLongitude()));
+                                            }};
+                                            smoothMoveMarker.setPoints(points);
+                                            smoothMoveMarker.setTotalDuration(90);
+                                            smoothMoveMarker.setVisible(true);
+                                            smoothMoveMarker.startSmoothMove();
                                         }
                                     }
                                 }
