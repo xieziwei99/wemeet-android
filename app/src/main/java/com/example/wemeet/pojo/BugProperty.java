@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 public class BugProperty implements Serializable {
     private Long bugID;
 
-    private User user;
+    private User planter;
 
     private Double startLongitude;
 

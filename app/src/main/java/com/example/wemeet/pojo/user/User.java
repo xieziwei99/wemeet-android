@@ -1,8 +1,10 @@
 package com.example.wemeet.pojo.user;
 
+import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.CatcherBugRecord;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Data;
@@ -65,4 +67,6 @@ public class User implements Serializable {
     public int hashCode() {
         return id.hashCode();
     }
+
+    private List<BugProperty> plantBugs;
 }

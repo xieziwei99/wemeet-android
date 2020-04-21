@@ -41,7 +41,6 @@ import com.example.wemeet.util.MarkerInfo;
 import com.example.wemeet.util.MathUtil;
 import com.example.wemeet.util.NetworkUtil;
 
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -65,22 +64,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 申请权限：定位权限、读权限、写权限
-        String[] neededPermissions = {
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        };
-        List<String> tempPermissions = new ArrayList<>();
-        for (String p : neededPermissions) {
-            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
-                tempPermissions.add(p);
-            }
-        }
-        if (!tempPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
-        }
+        requestPermissions();
 
         // 初始化地图
         mapView = findViewById(R.id.map);
@@ -184,16 +168,18 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                             markerList.add(marker);
 
-                                            // make markers movable
-                                            MovingPointOverlay smoothMoveMarker = new MovingPointOverlay(aMap, marker);
-                                            List<LatLng> points = new ArrayList<LatLng>(){{
-                                                add(new LatLng(bugProperty.getStartLatitude(), bugProperty.getStartLongitude()));
-                                                add(new LatLng(bugProperty.getDestLatitude(), bugProperty.getDestLongitude()));
-                                            }};
-                                            smoothMoveMarker.setPoints(points);
-                                            smoothMoveMarker.setTotalDuration(90);
-                                            smoothMoveMarker.setVisible(true);
-                                            smoothMoveMarker.startSmoothMove();
+                                            if (bugProperty.isMovable()) {
+                                                // make markers movable
+                                                MovingPointOverlay smoothMoveMarker = new MovingPointOverlay(aMap, marker);
+                                                List<LatLng> points = new ArrayList<LatLng>(){{
+                                                    add(new LatLng(bugProperty.getStartLatitude(), bugProperty.getStartLongitude()));
+                                                    add(new LatLng(bugProperty.getDestLatitude(), bugProperty.getDestLongitude()));
+                                                }};
+                                                smoothMoveMarker.setPoints(points);
+                                                smoothMoveMarker.setTotalDuration(90);
+                                                smoothMoveMarker.setVisible(true);
+                                                smoothMoveMarker.startSmoothMove();
+                                            }
                                         }
                                     }
                                 }
@@ -370,5 +356,27 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         //在activity执行onSaveInstanceState时执行mapView.onSaveInstanceState (outState)，保存地图当前的状态
         mapView.onSaveInstanceState(outState);
+    }
+
+    /**
+     * 申请程序需要的权限
+     */
+    private void requestPermissions() {
+        // 申请权限：定位权限、读权限、写权限
+        String[] neededPermissions = {
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        };
+        List<String> tempPermissions = new ArrayList<>();
+        for (String p : neededPermissions) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                tempPermissions.add(p);
+            }
+        }
+        if (!tempPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
+        }
     }
 }
