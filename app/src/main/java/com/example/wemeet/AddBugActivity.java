@@ -17,12 +17,15 @@ import android.widget.TextView;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bigkoo.pickerview.builder.TimePickerBuilder;
+import com.bigkoo.pickerview.view.TimePickerView;
 import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.ChoiceQuestion;
 import com.example.wemeet.pojo.ContentDesc;
 import com.example.wemeet.pojo.VirusPoint;
+import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.NetworkUtil;
 import com.example.wemeet.util.ReturnVO;
@@ -34,6 +37,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class AddBugActivity extends AppCompatActivity {
+    private EditText symptomsEditText;
+    private Timestamp diseaseStartTime = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +68,7 @@ public class AddBugActivity extends AppCompatActivity {
                 break;
             case 4:
                 setContentView(R.layout.acticity_add_virus_point);
+                symptomsEditText = findViewById(R.id.editText_symptoms);
                 ((TextView) findViewById(R.id.text_question_type)).append("：" + getString(R.string.疫情点));
                 break;
         }
@@ -86,6 +92,9 @@ public class AddBugActivity extends AppCompatActivity {
                 .setStartTime(new Timestamp(milli))
                 .setLifeCount(10)
                 .setRestLifeCount(10);
+        bugProperty
+                .setDestLatitude(bugProperty.getStartLatitude())
+                .setDestLongitude(bugProperty.getStartLongitude());
         bug.setBugProperty(bugProperty);
 
         switch (view.getId()) {
@@ -111,50 +120,67 @@ public class AddBugActivity extends AppCompatActivity {
                 score = 0;
                 virusPoint
                         .setDescription(((EditText) findViewById(R.id.editText_description)).getText().toString())
-                        .setType(4).
-                        setPublishTime(new Timestamp(milli));
+                        .setSymptoms(symptomsEditText.getText().toString())
+                        .setDiseaseStartTime(diseaseStartTime)
+                        .setType(4)
+                        .setPublishTime(new Timestamp(milli));
                 bug.setVirusPoint(virusPoint);
                 break;
         }
 
         int finalScore = score * -1;
-        NetworkUtil.getRetrofit().create(BugInterface.class)
-                .addBug(bug)
-                .enqueue(new Callback<ReturnVO>() {
+        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
+        String email = settings.getString(LoginActivity.USER_EMAIL, "error");
+        NetworkUtil.getRetrofit().create(UserInterface.class)
+                .getUserByEmail(email)
+                .enqueue(new Callback<User>() {
                     @Override
-                    public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
-                        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
-                        String email = settings.getString(LoginActivity.USER_EMAIL, "error");
-                        if (!"error".equals(email)) {
-                            NetworkUtil.getRetrofit().create(UserInterface.class)
-                                    .changeScoreOfUser(email, finalScore)
-                                    .enqueue(new Callback<ReturnVO>() {
-                                        @Override
-                                        public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+                    public void onResponse(Call<User> call, Response<User> response) {
+                        User planter = response.body();
+                        bug.setPlanter(planter);
 
-                                        }
+                        NetworkUtil.getRetrofit().create(BugInterface.class)
+                                .addBug(bug)
+                                .enqueue(new Callback<ReturnVO>() {
+                                    @Override
+                                    public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+                                        if (!"error".equals(email)) {
+                                            NetworkUtil.getRetrofit().create(UserInterface.class)
+                                                    .changeScoreOfUser(email, finalScore)
+                                                    .enqueue(new Callback<ReturnVO>() {
+                                                        @Override
+                                                        public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
 
-                                        @Override
-                                        public void onFailure(Call<ReturnVO> call, Throwable t) {
-                                            t.printStackTrace();
+                                                        }
+
+                                                        @Override
+                                                        public void onFailure(Call<ReturnVO> call, Throwable t) {
+                                                            t.printStackTrace();
+                                                        }
+                                                    });
                                         }
-                                    });
-                        }
-                        new AlertDialog.Builder(AddBugActivity.this)
-                                .setTitle("WeMeet")
-                                .setMessage("种植成功")
-                                .setPositiveButton("确定", (dialog, which) -> {
-                                    Intent intent1 = new Intent(AddBugActivity.this, MainActivity.class);
-                                    startActivity(intent1);
-                                    AddBugActivity.this.finish();
-                                })
-                                .create()
-                                .show();
+                                        new AlertDialog.Builder(AddBugActivity.this)
+                                                .setTitle("WeMeet")
+                                                .setMessage("种植成功")
+                                                .setPositiveButton("确定", (dialog, which) -> {
+                                                    Intent intent1 = new Intent(AddBugActivity.this, MainActivity.class);
+                                                    startActivity(intent1);
+                                                    AddBugActivity.this.finish();
+                                                })
+                                                .create()
+                                                .show();
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<ReturnVO> call, Throwable t) {
+                                        t.printStackTrace();
+                                    }
+                                });
                     }
 
                     @Override
-                    public void onFailure(Call<ReturnVO> call, Throwable t) {
-                        t.printStackTrace();
+                    public void onFailure(Call<User> call, Throwable t) {
+
                     }
                 });
     }
@@ -193,5 +219,13 @@ public class AddBugActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
         }
+    }
+
+    // 选择时间按钮
+    public void chooseTime(View view) {
+        TimePickerView timePickerView = new TimePickerBuilder(this, (date, v) -> diseaseStartTime = new Timestamp(date.getTime()))
+                .setType(new boolean[]{true, true, true, true, false, false})
+                .build();
+        timePickerView.show();
     }
 }

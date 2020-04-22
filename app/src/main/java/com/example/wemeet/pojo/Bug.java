@@ -1,5 +1,7 @@
 package com.example.wemeet.pojo;
 
+import com.example.wemeet.pojo.user.User;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -19,6 +21,7 @@ public class Bug implements Serializable {
     private ChoiceQuestion choiceQuestion;
     private NarrativeQuestion narrativeQuestion;
     private VirusPoint virusPoint;
+    private User planter;
 
     @Override
     public boolean equals(Object o) {
