@@ -35,6 +35,7 @@ import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.CatcherBugRecord;
+import com.example.wemeet.pojo.VirusPoint;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.MarkerInfo;
@@ -99,6 +100,9 @@ public class MainActivity extends AppCompatActivity {
                 marker1.hideInfoWindow();
             }
         }));
+
+        // 为什么在这里输出 aMap.getMyLocation() 是 null，难道是因为异步任务？
+        new Thread(() -> System.out.println("-------------------" + aMap.getMyLocation())).start();
     }
 
     // 需要重载回调函数：用户对权限申请做出相应操作后执行
@@ -155,14 +159,22 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                                 marker.setObject(info);
                                             } else if (bugProperty.getBugContent().getType() == 4) {
+                                                // 为什么在这里可以使用 aMap.getMyLocation()
                                                 double userLat = aMap.getMyLocation().getLatitude();
                                                 double userLon = aMap.getMyLocation().getLongitude();
                                                 double bugLat = bugProperty.getStartLatitude();
                                                 double bugLon = bugProperty.getStartLongitude();
+                                                VirusPoint virusPoint = bug.getVirusPoint();
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
-                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米", MathUtil.getDistance(bugLat, bugLon, userLat, userLon)))
+                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米\n种植者 %s\n症状 %s\n发病时间 %s\n其他描述 %s",
+                                                                MathUtil.getDistance(bugLat, bugLon, userLat, userLon),
+                                                                bugProperty.getPlanter().getName(),
+                                                                virusPoint.getSymptoms(),
+                                                                virusPoint.getDiseaseStartTime(),
+                                                                virusPoint.getDescription()
+                                                        ))
                                                         .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
                                                 );
                                             }
@@ -171,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                                             if (bugProperty.isMovable()) {
                                                 // make markers movable
                                                 MovingPointOverlay smoothMoveMarker = new MovingPointOverlay(aMap, marker);
-                                                List<LatLng> points = new ArrayList<LatLng>(){{
+                                                List<LatLng> points = new ArrayList<LatLng>() {{
                                                     add(new LatLng(bugProperty.getStartLatitude(), bugProperty.getStartLongitude()));
                                                     add(new LatLng(bugProperty.getDestLatitude(), bugProperty.getDestLongitude()));
                                                 }};
