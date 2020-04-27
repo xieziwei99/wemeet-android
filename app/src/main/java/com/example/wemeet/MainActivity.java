@@ -83,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         aMap.getUiSettings().setScaleControlsEnabled(true);
         aMap.setMyLocationEnabled(true);
 
+        locateMyPosition();
+
         // 对每个marker设置一个点击事件
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
@@ -303,36 +305,6 @@ public class MainActivity extends AppCompatActivity {
 //        // 初始视角移动到北邮
 //        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
 //                new LatLng(39.9643, 116.3557), 16, 0, 0)));
-
-        // 定位
-        locationClient = new AMapLocationClient(getApplicationContext());
-        locationListener = location -> {
-            if (location != null) {
-                if (location.getErrorCode() == 0) {
-                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
-                } else {    // 定位失败
-                    Log.e("AMapError", "location Error, ErrCode:"
-                            + location.getErrorCode() + ", errInfo:"
-                            + location.getErrorInfo());
-                }
-            }
-        };
-        locationClient.setLocationListener(locationListener);
-        option = new AMapLocationClientOption();
-        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-                .setOnceLocation(true);
-        locationClient.setLocationOption(option);
-        locationClient.startLocation();
-
-        // 设置option场景
-//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
-//        if (null != locationClient) {
-//            locationClient.setLocationOption(option);
-//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
-//            locationClient.stopLocation();
-//            locationClient.startLocation();
-//        }
     }
 
     @Override
@@ -347,6 +319,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         //在activity执行onDestroy时执行mapView.onDestroy()，销毁地图
         mapView.onDestroy();
+        locationClient.stopLocation();
+        locationClient.onDestroy();
     }
 
     @Override
@@ -390,5 +364,38 @@ public class MainActivity extends AppCompatActivity {
         if (!tempPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
         }
+    }
+
+    private void locateMyPosition() {
+        // 定位
+        locationClient = new AMapLocationClient(getApplicationContext());
+        locationListener = location -> {
+            if (location != null) {
+                if (location.getErrorCode() == 0) {
+                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                    Log.i("TAG-------------", "locateMyPosition: ");
+                } else {    // 定位失败
+                    Log.e("AMapError", "location Error, ErrCode:"
+                            + location.getErrorCode() + ", errInfo:"
+                            + location.getErrorInfo());
+                }
+            }
+        };
+        locationClient.setLocationListener(locationListener);
+        option = new AMapLocationClientOption();
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
+                .setOnceLocation(true);
+        locationClient.setLocationOption(option);
+        locationClient.startLocation();
+
+        // 设置option场景
+//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
+//        if (null != locationClient) {
+//            locationClient.setLocationOption(option);
+//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+//            locationClient.stopLocation();
+//            locationClient.startLocation();
+//        }
     }
 }
