@@ -35,4 +35,5 @@
     <string name="选择时间">选择时间</string>
     <string name="种虫记录">种虫记录</string>
     <string name="捉虫记录">捉虫记录</string>
+    <string name="设置存活时间">设置存活时间（小时）</string>
 </resources>

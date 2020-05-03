@@ -21,23 +21,22 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
                 <TextView
                     android:id="@+id/textView4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     android:text="@string/输入题目"
-                    android:textSize="24sp" />
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/input_question_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:gravity="start|top"
                     android:hint="@string/题目"
@@ -49,17 +48,15 @@
                     android:id="@+id/textView5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     android:text="@string/输入选项"
-                    android:textSize="24sp" />
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/input_a"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:hint="@string/A"
                     android:importantForAutofill="no"
@@ -70,7 +67,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:hint="@string/B"
                     android:importantForAutofill="no"
@@ -81,7 +77,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:hint="@string/C"
                     android:importantForAutofill="no"
@@ -92,7 +87,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:hint="@string/D"
                     android:importantForAutofill="no"
@@ -102,10 +96,9 @@
                     android:id="@+id/textView7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     android:text="@string/设置正确答案"
-                    android:textSize="24sp" />
+                    android:textSize="18sp" />
 
                 <RadioGroup
                     android:id="@+id/radioGroup_correct_answer"
@@ -152,21 +145,25 @@
                     android:id="@+id/textView8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="24dp"
                     android:text="@string/设置金币数"
-                    android:textSize="24sp" />
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/input_score"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:ems="10"
                     android:hint="@string/输入金币数"
                     android:importantForAutofill="no"
                     android:inputType="number" />
+
+                <include
+                    layout="@layout/set_bug_property"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp" />
 
                 <Button
                     android:id="@+id/button_add_bug"
@@ -175,9 +172,9 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="32dp"
                     android:background="@color/blue"
+                    android:enabled="false"
                     android:onClick="addBug"
                     android:text="@string/确认添加"
-                    android:enabled="false"
                     android:textSize="18sp" />
 
             </LinearLayout>
