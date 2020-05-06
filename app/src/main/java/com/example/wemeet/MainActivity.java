@@ -355,7 +355,6 @@ public class MainActivity extends AppCompatActivity {
             );
             marker.showInfoWindow();
             markerList.forEach(marker1 -> marker1.setClickable(false));
-
             plantBugButton.setLabelText("确认");
             aMap.setOnMapLongClickListener(latLng -> {
                 if (destMarker != null) {
