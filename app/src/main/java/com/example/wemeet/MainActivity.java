@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
             View header = navigationView.getHeaderView(0);
             ((TextView) header.findViewById(R.id.text_user_id)).append(": " + "id");
             ((TextView) header.findViewById(R.id.text_user_name)).append(": " + "name");
-            ((TextView) header.findViewById(R.id.text_user_email)).append(": " + "email");
+            ((TextView) header.findViewById(R.id.text_user_email)).append(" : " + "haochangdeyichuan@xxxx.xxx.xx");
             ((TextView) header.findViewById(R.id.text_user_score)).append(": " + "score");
         }
 
