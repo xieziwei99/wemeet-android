@@ -58,8 +58,8 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@id/map"
                 app:layout_constraintEnd_toEndOf="@id/map"
-                app:menu_colorNormal="@color/white"
-                app:menu_colorPressed="@color/white_pressed">
+                app:menu_colorNormal="@color/colorPrimary"
+                app:menu_colorPressed="@color/colorPrimaryDark">
 
                 <com.github.clans.fab.FloatingActionButton
                     android:id="@+id/button_plant_bugs"
