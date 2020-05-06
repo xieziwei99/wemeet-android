@@ -7,7 +7,7 @@
     <string name="邮箱">邮箱</string>
     <string name="密码">密码</string>
     <string name="登录">登录</string>
-    <string name="退出登录">退出登录</string>
+    <string name="退出登录">登出</string>
     <string name="个人中心">个人中心</string>
     <string name="会员号">会员号</string>
     <string name="用户名">用户名</string>
@@ -35,5 +35,8 @@
     <string name="选择时间">选择时间</string>
     <string name="种虫记录">种虫记录</string>
     <string name="捉虫记录">捉虫记录</string>
+    <string name="home">首页</string>
+    <string name="menu_setting">设置</string>
+    <string name="menu_help">帮助</string>
     <string name="设置存活时间">设置存活时间（小时）</string>
 </resources>
