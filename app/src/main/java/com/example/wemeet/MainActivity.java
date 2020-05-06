@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,11 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.AMapOptions;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
@@ -54,8 +56,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private Marker destMarker = null;   // 保存目的marker
     private List<Marker> markerList = new ArrayList<>();    // 保存已经种植的marker列表
     private DrawerLayout mDrawerLayout;     //侧滑菜单
+    private final String tag_networkError = "网络请求错误";
 
 
     @Override
@@ -92,11 +93,25 @@ public class MainActivity extends AppCompatActivity {
 
         //侧栏个人信息
         if(navigationView.getHeaderCount() > 0) {
-            View header = navigationView.getHeaderView(0);
-            ((TextView) header.findViewById(R.id.text_user_id)).append(": " + "id");
-            ((TextView) header.findViewById(R.id.text_user_name)).append(": " + "name");
-            ((TextView) header.findViewById(R.id.text_user_email)).append(": " + "email");
-            ((TextView) header.findViewById(R.id.text_user_score)).append(": " + "score");
+            NetworkUtil.getRetrofit().create(UserInterface.class)
+                    .getUserByEmail(getUserEmail())
+                    .enqueue(new Callback<User>() {
+                        @Override
+                        public void onResponse(Call<User> call, Response<User> response) {
+                            User user = response.body();
+                            assert user != null;
+                            View header = navigationView.getHeaderView(0);
+                            ((TextView) header.findViewById(R.id.text_user_id)).append(": " + user.getId());
+                            ((TextView) header.findViewById(R.id.text_user_name)).append(": " + user.getName());
+                            ((TextView) header.findViewById(R.id.text_user_email)).append(": " + user.getEmail());
+                            ((TextView) header.findViewById(R.id.text_user_score)).append(": " + user.getScore());
+                        }
+
+                        @Override
+                        public void onFailure(Call<User> call, Throwable t) {
+                            Log.e(tag_networkError, "onFailure: getUserByEmail", t);
+                        }
+                    });
         }
 
         navigationView.setCheckedItem(R.id.home);//将首页菜单项设置为默认选中
@@ -108,15 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 item.setChecked(true);
                 switch(item.getItemId()) {
                     case R.id.button_logout://登出
-                        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.remove(LoginActivity.LOGGED_IN);
-                        editor.remove(LoginActivity.USER_EMAIL);
-                        editor.apply();
-
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                        MainActivity.this.finish();
+                        logout();
                 }
                 mDrawerLayout.closeDrawers();//关闭滑动菜单
                 return true;
@@ -147,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
         aMap.getUiSettings().setMyLocationButtonEnabled(true);
         aMap.getUiSettings().setScaleControlsEnabled(true);
+        aMap.getUiSettings().setZoomPosition(AMapOptions.ZOOM_POSITION_RIGHT_CENTER);
         aMap.setMyLocationEnabled(true);
 
         locateMyPosition();
@@ -303,8 +311,8 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // 响应登出按钮的事件
-    public void logout(View view) {
+    // 登出按钮
+    public void logout() {
         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.remove(LoginActivity.LOGGED_IN);
@@ -513,5 +521,10 @@ public class MainActivity extends AppCompatActivity {
 //            locationClient.stopLocation();
 //            locationClient.startLocation();
 //        }
+    }
+
+    private String getUserEmail() {
+        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
+        return settings.getString(LoginActivity.USER_EMAIL, "error");
     }
 }
