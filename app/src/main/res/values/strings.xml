@@ -38,4 +38,5 @@
     <string name="home">首页</string>
     <string name="menu_setting">设置</string>
     <string name="menu_help">帮助</string>
+    <string name="设置存活时间">设置存活时间（小时）</string>
 </resources>

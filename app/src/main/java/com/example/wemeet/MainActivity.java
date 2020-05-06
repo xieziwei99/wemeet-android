@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     public AMapLocationClientOption option = null;
     public AMapLocationListener locationListener = null;
     private Marker marker = null;   // 保存新种植的marker
+    private Marker destMarker = null;   // 保存目的marker
     private List<Marker> markerList = new ArrayList<>();    // 保存已经种植的marker列表
     private DrawerLayout mDrawerLayout;     //侧滑菜单
 
@@ -147,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
         aMap.getUiSettings().setMyLocationButtonEnabled(true);
         aMap.getUiSettings().setScaleControlsEnabled(true);
         aMap.setMyLocationEnabled(true);
+
+        locateMyPosition();
 
         // 对每个marker设置一个点击事件
         aMap.setOnInfoWindowClickListener(marker -> {
@@ -347,17 +350,41 @@ public class MainActivity extends AppCompatActivity {
             marker = aMap.addMarker(new MarkerOptions()
                     .position(new LatLng(aMap.getMyLocation().getLatitude(), aMap.getMyLocation().getLongitude()))
                     .title("种植虫子")
-                    .snippet("长按标记来拖动标记以确定种植位置")
+                    .snippet("长按标记来拖动标记以确定种植位置\n如果需要虫子移动，请长按屏幕设置虫子目的标记点位置")
                     .draggable(true)
             );
             marker.showInfoWindow();
             markerList.forEach(marker1 -> marker1.setClickable(false));
+
             plantBugButton.setLabelText("确认");
+            aMap.setOnMapLongClickListener(latLng -> {
+                if (destMarker != null) {
+                    destMarker.destroy();
+                }
+                destMarker = aMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title("设置目的位置")
+                        .snippet("长按标记来拖动标记以确定虫子目的位置")
+                        .draggable(true)
+                );
+                destMarker.showInfoWindow();
+            });
         }
         if ("确认".equals(command)) {
+            LatLng startLatLng = marker.getPosition();
+            LatLng destLatLng = null;
+            boolean movable = false;
+            if (destMarker != null) {
+                movable = true;
+                destLatLng = destMarker.getPosition();
+            }
+            marker = null;
+            destMarker = null;
             // 弹窗让用户选择种植虫子的类型
             String[] typeChoices = {getString(R.string.单项选择题), getString(R.string.疫情点)};
             final int[] typeChosen = new int[1];    // FIXME: 2020/3/3 可否更好的解决
+            boolean finalMovable = movable;
+            LatLng finalDestLatLng = destLatLng;
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("WeMeet 选择虫子类型")
                     .setSingleChoiceItems(typeChoices, 0, (dialog, which) -> typeChosen[0] = which)
@@ -373,8 +400,13 @@ public class MainActivity extends AppCompatActivity {
                             default:
                                 break;
                         }
-                        intent.putExtra("lat", marker.getPosition().latitude);
-                        intent.putExtra("lon", marker.getPosition().longitude);
+                        intent.putExtra("lat", startLatLng.latitude);
+                        intent.putExtra("lon", startLatLng.longitude);
+                        if (finalMovable) {
+                            intent.putExtra("movable", true);
+                            intent.putExtra("destLat", finalDestLatLng.latitude);
+                            intent.putExtra("destLon", finalDestLatLng.longitude);
+                        }
                         startActivity(intent);
                     })
                     .create()
@@ -390,36 +422,6 @@ public class MainActivity extends AppCompatActivity {
 //        // 初始视角移动到北邮
 //        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
 //                new LatLng(39.9643, 116.3557), 16, 0, 0)));
-
-        // 定位
-        locationClient = new AMapLocationClient(getApplicationContext());
-        locationListener = location -> {
-            if (location != null) {
-                if (location.getErrorCode() == 0) {
-                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
-                } else {    // 定位失败
-                    Log.e("AMapError", "location Error, ErrCode:"
-                            + location.getErrorCode() + ", errInfo:"
-                            + location.getErrorInfo());
-                }
-            }
-        };
-        locationClient.setLocationListener(locationListener);
-        option = new AMapLocationClientOption();
-        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-                .setOnceLocation(true);
-        locationClient.setLocationOption(option);
-        locationClient.startLocation();
-
-        // 设置option场景
-//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
-//        if (null != locationClient) {
-//            locationClient.setLocationOption(option);
-//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
-//            locationClient.stopLocation();
-//            locationClient.startLocation();
-//        }
     }
 
     @Override
@@ -434,6 +436,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         //在activity执行onDestroy时执行mapView.onDestroy()，销毁地图
         mapView.onDestroy();
+        locationClient.stopLocation();
+        locationClient.onDestroy();
     }
 
     @Override
@@ -477,5 +481,38 @@ public class MainActivity extends AppCompatActivity {
         if (!tempPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
         }
+    }
+
+    private void locateMyPosition() {
+        // 定位
+        locationClient = new AMapLocationClient(getApplicationContext());
+        locationListener = location -> {
+            if (location != null) {
+                if (location.getErrorCode() == 0) {
+                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                    Log.i("TAG-------------", "locateMyPosition: ");
+                } else {    // 定位失败
+                    Log.e("AMapError", "location Error, ErrCode:"
+                            + location.getErrorCode() + ", errInfo:"
+                            + location.getErrorInfo());
+                }
+            }
+        };
+        locationClient.setLocationListener(locationListener);
+        option = new AMapLocationClientOption();
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
+                .setOnceLocation(true);
+        locationClient.setLocationOption(option);
+        locationClient.startLocation();
+
+        // 设置option场景
+//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
+//        if (null != locationClient) {
+//            locationClient.setLocationOption(option);
+//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+//            locationClient.stopLocation();
+//            locationClient.startLocation();
+//        }
     }
 }

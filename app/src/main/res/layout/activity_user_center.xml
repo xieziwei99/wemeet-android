@@ -61,4 +61,30 @@
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_user_email" />
+
+    <Button
+        android:id="@+id/button_plant_record"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:onClick="getPlantBugsRecord"
+        android:paddingHorizontal="16dp"
+        android:text="@string/种虫记录"
+        android:textAlignment="viewStart"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/text_user_score" />
+
+    <Button
+        android:id="@+id/button_catch_record"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:onClick="getCatchBugRecord"
+        android:paddingHorizontal="16dp"
+        android:text="@string/捉虫记录"
+        android:textAlignment="viewStart"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/button_plant_record" />
 </androidx.constraintlayout.widget.ConstraintLayout>
