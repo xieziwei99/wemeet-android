@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!--右侧添加操作条目-->
+
+    <!--右侧设置条目，收起，不显示-->
+    <item
+        android:id="@+id/action_setting"
+        android:title="@string/menu_setting"
+        app:showAsAction="never" />
+
+    <!--右侧设置帮助条目，收起，不显示-->
+    <item
+        android:id="@+id/action_help"
+        android:title="@string/menu_help"
+        app:showAsAction="never" />
+
+</menu>
