@@ -39,6 +39,13 @@ import retrofit2.Response;
 public class AddBugActivity extends AppCompatActivity {
     private EditText symptomsEditText;
     private Timestamp diseaseStartTime = null;
+    EditText survivalTimeEditText = null;
+    EditText questionTextInput = null;
+    EditText aInput = null;
+    EditText bInput = null;
+    EditText cInput = null;
+    EditText dInput = null;
+    EditText scoreInput = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +58,15 @@ public class AddBugActivity extends AppCompatActivity {
                 setContentView(R.layout.activity_add_bug);
                 ((TextView) findViewById(R.id.text_question_type)).append("：" + getString(R.string.单项选择题));
 
+                questionTextInput = findViewById(R.id.input_question_text);
+                aInput = findViewById(R.id.input_a);
+                bInput = findViewById(R.id.input_b);
+                cInput = findViewById(R.id.input_c);
+                dInput = findViewById(R.id.input_d);
+                scoreInput = findViewById(R.id.input_score);
+                survivalTimeEditText = findViewById(R.id.editText_survivalTime);
+
                 // 添加非空约束Listener
-                EditText questionTextInput = findViewById(R.id.input_question_text);
-                EditText aInput = findViewById(R.id.input_a);
-                EditText bInput = findViewById(R.id.input_b);
-                EditText cInput = findViewById(R.id.input_c);
-                EditText dInput = findViewById(R.id.input_d);
-                EditText scoreInput = findViewById(R.id.input_score);
                 TextChange textChange = new TextChange();
                 questionTextInput.addTextChangedListener(textChange);
                 aInput.addTextChangedListener(textChange);
@@ -65,6 +74,7 @@ public class AddBugActivity extends AppCompatActivity {
                 cInput.addTextChangedListener(textChange);
                 dInput.addTextChangedListener(textChange);
                 scoreInput.addTextChangedListener(textChange);
+                survivalTimeEditText.addTextChangedListener(textChange);
                 break;
             case 4:
                 setContentView(R.layout.acticity_add_virus_point);
