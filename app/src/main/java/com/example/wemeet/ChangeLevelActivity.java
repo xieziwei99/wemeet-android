@@ -27,6 +27,9 @@ public class ChangeLevelActivity extends DialogFragment {
             @Override
             public void onClick(View v) {
                 dismiss();
+                ShowVirusActivity showVirusActivity = new ShowVirusActivity();
+                showVirusActivity.setArguments(bundle);
+                showVirusActivity.show(getFragmentManager(),"virus");
             }
         });
 
