@@ -78,6 +78,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //虫子内容
+        ShowVirusActivity showVirusActivity = new ShowVirusActivity();
+        showVirusActivity.show(getSupportFragmentManager(),"");
+
         //topbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -163,10 +167,15 @@ public class MainActivity extends AppCompatActivity {
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
             if (info.getBug() != null) {
+                Bundle bundle = new Bundle();
                 Intent intent = new Intent(this, ShowQuestionActivity.class);
+                bundle.putSerializable("bug",info.getBug());
+                bundle.putBoolean("caught",info.isCaught());
+                bundle.putString("userAnswer", info.getUserAnswer());
                 intent.putExtra("bug", info.getBug());
                 intent.putExtra("caught", info.isCaught());
                 intent.putExtra("userAnswer", info.getUserAnswer());
+                intent.putExtra("Message",bundle);
                 startActivity(intent);
             }
         });
