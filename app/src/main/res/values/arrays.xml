@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="state">
+        <item>症状</item>
+        <item>疑似</item>
+        <item>确诊</item>
+    </string-array>
+</resources>

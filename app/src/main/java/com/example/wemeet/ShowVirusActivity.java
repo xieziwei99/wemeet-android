@@ -45,13 +45,26 @@ public class ShowVirusActivity extends DialogFragment {
             }
             ((TextView)view.findViewById(R.id.note)).append("："+bug.getVirusPoint().getDescription());
         }
+
         ImageView close = (ImageView) view.findViewById(R.id.close_button);
         close.setOnClickListener(new View.OnClickListener() {
-                                     @Override
-                                     public void onClick(View v) {
-                                         dismiss();
-                                     }
-                                 });
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+
+        Button changeLevel = (Button)view.findViewById(R.id.change_level);
+        changeLevel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bundle.putSerializable("virusPoint",bug.getVirusPoint());
+                ChangeLevelActivity changeLevelActivity = new ChangeLevelActivity();
+                changeLevelActivity.setArguments(bundle);
+                changeLevelActivity.show(getFragmentManager(),"changeLevel");
+                dismiss();
+            }
+        });
         return view;
     }
     @Override
