@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import androidx.fragment.app.FragmentManager;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -77,10 +78,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //虫子内容
-        ShowVirusActivity showVirusActivity = new ShowVirusActivity();
-        showVirusActivity.show(getSupportFragmentManager(),"");
 
         //topbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -167,16 +164,22 @@ public class MainActivity extends AppCompatActivity {
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
             if (info.getBug() != null) {
-                Bundle bundle = new Bundle();
-                Intent intent = new Intent(this, ShowQuestionActivity.class);
-                bundle.putSerializable("bug",info.getBug());
-                bundle.putBoolean("caught",info.isCaught());
-                bundle.putString("userAnswer", info.getUserAnswer());
-                intent.putExtra("bug", info.getBug());
-                intent.putExtra("caught", info.isCaught());
-                intent.putExtra("userAnswer", info.getUserAnswer());
-                intent.putExtra("Message",bundle);
-                startActivity(intent);
+                if(info.getBug().getVirusPoint()!=null){//疫情虫子
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bug",info.getBug());
+                    ShowVirusActivity showVirusActivity = new ShowVirusActivity();
+                    showVirusActivity.setArguments(bundle);
+                    showVirusActivity.show(getSupportFragmentManager(),"vitus");
+                }else {//题目虫子
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bug", info.getBug());
+                    bundle.putBoolean("caught", info.isCaught());
+                    bundle.putString("userAnswer", info.getUserAnswer());
+                    ShowQuestionActivity showQuestionActivity = new ShowQuestionActivity();
+                    showQuestionActivity.setArguments(bundle);
+                    showQuestionActivity.show(getSupportFragmentManager(), "question");
+
+                }
             }
         });
 
@@ -256,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 + "点击进行捕捉")
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
-                                                info.setBug(bug).setCaught(false).setUserAnswer(null);
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(null);
                                                 if (records != null) {
                                                     for (CatcherBugRecord record : records) {
                                                         if (record.getCaughtBug().equals(bugProperty)) {
@@ -277,15 +280,15 @@ public class MainActivity extends AppCompatActivity {
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
-                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米\n种植者 %s\n症状 %s\n发病时间 %s\n其他描述 %s",
+                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米\n种植者 %s\n点击查看详情",
                                                                 MathUtil.getDistance(bugLat, bugLon, userLat, userLon),
-                                                                bugProperty.getPlanter().getName(),
-                                                                virusPoint.getSymptoms(),
-                                                                virusPoint.getDiseaseStartTime(),
-                                                                virusPoint.getDescription()
+                                                                bugProperty.getPlanter().getName()
                                                         ))
                                                         .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
                                                 );
+                                                MarkerInfo info = new MarkerInfo();
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(bug.getVirusPoint());
+                                                marker.setObject(info);
                                             }
                                             markerList.add(marker);
 
@@ -333,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.finish();
     }
 
-    // 响应个人中心按钮的事件
+    // 响应个人中心按钮的事件(如无特殊需求，此函数弃用)
     public void gotoUserCenter(View view) {
         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
         String email = settings.getString(LoginActivity.USER_EMAIL, "error");

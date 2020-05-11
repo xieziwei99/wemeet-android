@@ -1,55 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ShowQuestionActivity">
+    tools:context=".ShowQuestionActivity"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/请回答以下问题"
-        android:textSize="28sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp">
 
-    <TextView
-        android:id="@+id/questionTypeText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/TextView"
-        android:textSize="28sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView6" />
+        <ImageView
+            android:id="@+id/close_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/pickerview_cancel"
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+        <TextView
+            android:id="@+id/questionTypeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/TextView"
+            android:textColor="@color/black_semi_transparent"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/questionText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="24dp"
         android:text="@string/TextView"
-        android:textSize="20sp"
+        android:textColor="@color/black_semi_transparent"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/questionTypeText" />
 
     <RadioGroup
         android:id="@+id/radio_group_choices"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -59,37 +68,43 @@
             android:id="@+id/radioButtonA"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="showAnswerResult"
+            android:layout_marginBottom="8dp"
             android:text="@string/radiobutton"
-            android:textSize="20sp" />
+            android:textSize="16sp" />
 
         <RadioButton
             android:id="@+id/radioButtonB"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="showAnswerResult"
+            android:layout_marginBottom="8dp"
             android:text="@string/radiobutton"
-            android:textSize="20sp" />
+            android:textSize="16sp" />
 
         <RadioButton
             android:id="@+id/radioButtonC"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="showAnswerResult"
+            android:layout_marginBottom="8dp"
             android:text="@string/radiobutton"
-            android:textSize="20sp" />
+            android:textSize="16sp" />
 
         <RadioButton
             android:id="@+id/radioButtonD"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:onClick="showAnswerResult"
+            android:layout_marginBottom="8dp"
             android:text="@string/radiobutton"
-            android:textSize="20sp" />
+            android:textSize="16sp" />
+
     </RadioGroup>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/submit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="提交" />
+
+</LinearLayout>
