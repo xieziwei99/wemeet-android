@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="180dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -19,38 +20,39 @@
         android:id="@+id/text_user_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/text_user_name"
+        android:layout_above="@id/text_user_email"
         android:text="@string/会员号"
         android:textSize="16sp"
         android:textColor="#FFF" />
+
+    <TextView
+        android:id="@+id/text_user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/text_user_id"
+        android:text="@string/用户名"
+        android:textSize="16sp"
+        android:textColor="#FFF"/>
 
     <TextView
         android:id="@+id/text_user_email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/text_user_score"
-        android:layout_centerHorizontal="true"
         android:text="@string/邮箱"
         android:textSize="16sp"
-        android:textColor="#FFF"/>
-
-    <TextView
-        android:id="@+id/text_user_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="@string/用户名"
-        android:textSize="16sp"
-        android:textColor="#FFF" />
+        android:textColor="#FFF"
+        tools:ignore="RelativeOverlap"/>
 
     <TextView
         android:id="@+id/text_user_score"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentStart="true"
         android:text="@string/微觅币"
         android:textSize="16sp"
-        android:textColor="#FFF"/>
+        android:textColor="#FFF"
+        tools:ignore="RelativeOverlap" />
 
 </RelativeLayout>

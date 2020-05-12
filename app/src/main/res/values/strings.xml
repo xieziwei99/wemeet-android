@@ -4,7 +4,7 @@
     <string name="TextView">TextView</string>
     <string name="Button">Button</string>
     <string name="radiobutton">radiobutton</string>
-    <string name="邮箱">邮箱</string>
+    <string name="邮箱">邮箱 </string>
     <string name="密码">密码</string>
     <string name="登录">登录</string>
     <string name="退出登录">登出</string>
