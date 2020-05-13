@@ -10,13 +10,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.NetworkUtil;
 import com.example.wemeet.util.ReturnVO;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,7 +52,7 @@ public class LoginActivity extends AppCompatActivity {
         UserInterface userInterface = NetworkUtil.getRetrofit().create(UserInterface.class);
         userInterface.login(tempUser).enqueue(new Callback<ReturnVO>() {
             @Override
-            public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+            public void onResponse(@NonNull Call<ReturnVO> call, @NonNull Response<ReturnVO> response) {
                 ReturnVO result = response.body();
                 assert result != null;
                 Toast.makeText(LoginActivity.this, result.getMessage(), Toast.LENGTH_LONG).show();
@@ -72,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ReturnVO> call, Throwable t) {
+            public void onFailure(@NonNull Call<ReturnVO> call, @NonNull Throwable t) {
                 t.printStackTrace();
             }
         });

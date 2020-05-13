@@ -4,14 +4,17 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.wemeet.pojo.Bug;
 
+import java.util.Objects;
+
 import androidx.fragment.app.DialogFragment;
+
+import static android.view.WindowManager.LayoutParams;
 
 public class ShowVirusActivity extends DialogFragment {
     @Override
@@ -44,33 +47,26 @@ public class ShowVirusActivity extends DialogFragment {
             ((TextView)view.findViewById(R.id.note)).append("："+bug.getVirusPoint().getDescription());
         }
 
-        ImageView close = (ImageView) view.findViewById(R.id.close_button);
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        ImageView close = view.findViewById(R.id.close_button);
+        close.setOnClickListener(v -> dismiss());
 
-        Button changeLevel = (Button)view.findViewById(R.id.change_level);
-        changeLevel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                bundle.putSerializable("virusPoint",bug.getVirusPoint());
-                ChangeLevelActivity changeLevelActivity = new ChangeLevelActivity();
-                changeLevelActivity.setArguments(bundle);
-                changeLevelActivity.show(getFragmentManager(),"changeLevel");
-                dismiss();
-            }
+        Button changeLevel = view.findViewById(R.id.change_level);
+        changeLevel.setOnClickListener(view1 -> {
+            bundle.putSerializable("virusPoint",bug.getVirusPoint());
+            ChangeLevelActivity changeLevelActivity = new ChangeLevelActivity();
+            changeLevelActivity.setArguments(bundle);
+            assert getFragmentManager() != null;
+            changeLevelActivity.show(getFragmentManager(),"changeLevel");
+            dismiss();
         });
         return view;
     }
     @Override
     public void onResume() {
-        ViewGroup.LayoutParams params = getDialog().getWindow().getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT;
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        getDialog().getWindow().setAttributes((WindowManager.LayoutParams) params);
+        LayoutParams params = Objects.requireNonNull(Objects.requireNonNull(getDialog()).getWindow()).getAttributes();
+        params.width = LayoutParams.MATCH_PARENT;
+        params.height = LayoutParams.WRAP_CONTENT;
+        Objects.requireNonNull(getDialog().getWindow()).setAttributes(params);
         super.onResume();
     }
 

@@ -14,9 +14,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.bigkoo.pickerview.builder.TimePickerBuilder;
 import com.bigkoo.pickerview.view.TimePickerView;
 import com.example.wemeet.pojo.Bug;
@@ -32,6 +29,9 @@ import com.example.wemeet.util.ReturnVO;
 
 import java.sql.Timestamp;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -152,7 +152,7 @@ public class AddBugActivity extends AppCompatActivity {
                 .getUserByEmail(email)
                 .enqueue(new Callback<User>() {
                     @Override
-                    public void onResponse(Call<User> call, Response<User> response) {
+                    public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                         User planter = response.body();
                         bug.setPlanter(planter);
 
@@ -160,18 +160,18 @@ public class AddBugActivity extends AppCompatActivity {
                                 .addBug(bug)
                                 .enqueue(new Callback<ReturnVO>() {
                                     @Override
-                                    public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+                                    public void onResponse(@NonNull Call<ReturnVO> call, @NonNull Response<ReturnVO> response) {
                                         if (!"error".equals(email)) {
                                             NetworkUtil.getRetrofit().create(UserInterface.class)
                                                     .changeScoreOfUser(email, finalScore)
                                                     .enqueue(new Callback<ReturnVO>() {
                                                         @Override
-                                                        public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+                                                        public void onResponse(@NonNull Call<ReturnVO> call, @NonNull Response<ReturnVO> response) {
 
                                                         }
 
                                                         @Override
-                                                        public void onFailure(Call<ReturnVO> call, Throwable t) {
+                                                        public void onFailure(@NonNull Call<ReturnVO> call, @NonNull Throwable t) {
                                                             t.printStackTrace();
                                                         }
                                                     });
@@ -189,14 +189,14 @@ public class AddBugActivity extends AppCompatActivity {
                                     }
 
                                     @Override
-                                    public void onFailure(Call<ReturnVO> call, Throwable t) {
+                                    public void onFailure(@NonNull Call<ReturnVO> call, @NonNull Throwable t) {
                                         t.printStackTrace();
                                     }
                                 });
                     }
 
                     @Override
-                    public void onFailure(Call<User> call, Throwable t) {
+                    public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
 
                     }
                 });

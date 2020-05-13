@@ -33,7 +33,6 @@ import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.CatcherBugRecord;
-import com.example.wemeet.pojo.VirusPoint;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.MarkerInfo;
@@ -77,14 +76,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //topbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //TopBar
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         //侧栏导航栏
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
         ActionBar actionBar = getSupportActionBar();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         if (actionBar!=null){
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     .getUserByEmail(getUserEmail())
                     .enqueue(new Callback<User>() {
                         @Override
-                        public void onResponse(Call<User> call, Response<User> response) {
+                        public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                             User user = response.body();
                             assert user != null;
                             View header = navigationView.getHeaderView(0);
@@ -107,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onFailure(Call<User> call, Throwable t) {
+                        public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                             Log.e(tag_networkError, "onFailure: getUserByEmail", t);
                         }
                     });
@@ -115,27 +114,19 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setCheckedItem(R.id.home);//将首页菜单项设置为默认选中
         //侧滑栏menu选项的监听
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                item.setCheckable(true);
-                item.setChecked(true);
-                switch(item.getItemId()) {
-                    case R.id.button_logout://登出
-                        logout();
-                }
-                mDrawerLayout.closeDrawers();//关闭滑动菜单
-                return true;
+        navigationView.setNavigationItemSelectedListener(item -> {
+            item.setCheckable(true);
+            item.setChecked(true);
+            if (item.getItemId() == R.id.button_logout) {//登出
+                logout();
             }
+            mDrawerLayout.closeDrawers();//关闭滑动菜单
+            return true;
         });
 
         //悬浮按钮
-        FloatingActionButton plantBug = (FloatingActionButton)findViewById(R.id.button_plant_bugs);
-        plantBug.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                plantBugs(v);
-            }});
+        FloatingActionButton plantBug = findViewById(R.id.button_plant_bugs);
+        plantBug.setOnClickListener(this::plantBugs);
 
         requestPermissions();
 
@@ -233,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
         request.getAroundBugs(userLon, userLat)
                 .enqueue(new Callback<List<Bug>>() {
                     @Override
-                    public void onResponse(Call<List<Bug>> call, Response<List<Bug>> response) {
+                    public void onResponse(@NonNull Call<List<Bug>> call, @NonNull Response<List<Bug>> response) {
                         List<Bug> aroundBugs = response.body();
 
                         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
@@ -241,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!"error".equals(email)) {
                             request.getCatchRecordsByEmail(email).enqueue(new Callback<Set<CatcherBugRecord>>() {
                                 @Override
-                                public void onResponse(Call<Set<CatcherBugRecord>> call, Response<Set<CatcherBugRecord>> response) {
+                                public void onResponse(@NonNull Call<Set<CatcherBugRecord>> call, @NonNull Response<Set<CatcherBugRecord>> response) {
                                     Set<CatcherBugRecord> records = response.body();
 
                                     if (aroundBugs != null) {
@@ -274,7 +265,6 @@ public class MainActivity extends AppCompatActivity {
                                                 double userLon = aMap.getMyLocation().getLongitude();
                                                 double bugLat = bugProperty.getStartLatitude();
                                                 double bugLon = bugProperty.getStartLongitude();
-                                                VirusPoint virusPoint = bug.getVirusPoint();
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
@@ -307,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
 
                                 @Override
-                                public void onFailure(Call<Set<CatcherBugRecord>> call, Throwable t) {
+                                public void onFailure(@NonNull Call<Set<CatcherBugRecord>> call, @NonNull Throwable t) {
 
                                 }
                             });
@@ -315,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<List<Bug>> call, Throwable t) {
+                    public void onFailure(@NonNull Call<List<Bug>> call, @NonNull Throwable t) {
                         t.printStackTrace();
                     }
                 });
@@ -335,30 +325,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 响应个人中心按钮的事件(如无特殊需求，此函数弃用)
-    public void gotoUserCenter(View view) {
-        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
-        String email = settings.getString(LoginActivity.USER_EMAIL, "error");
-        if (!"error".equals(email)) {
-            // 获取当前用户
-            UserInterface userInterface = NetworkUtil.getRetrofit().create(UserInterface.class);
-            userInterface.getUserByEmail(email).enqueue(new Callback<User>() {
-                @Override
-                public void onResponse(Call<User> call, Response<User> response) {
-                    User user = response.body();
-                    Intent intent = new Intent(MainActivity.this, UserCenterActivity.class);
-                    intent.putExtra("user", user);
-                    startActivity(intent);
-                }
-
-                @Override
-                public void onFailure(Call<User> call, Throwable t) {
-                    t.printStackTrace();
-                }
-            });
-        } else {
-            Toast.makeText(this, "系统发生了不知名的错误", Toast.LENGTH_LONG).show();
-        }
-    }
+//    public void gotoUserCenter(View view) {
+//        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
+//        String email = settings.getString(LoginActivity.USER_EMAIL, "error");
+//        if (!"error".equals(email)) {
+//            // 获取当前用户
+//            UserInterface userInterface = NetworkUtil.getRetrofit().create(UserInterface.class);
+//            userInterface.getUserByEmail(email).enqueue(new Callback<User>() {
+//                @Override
+//                public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
+//                    User user = response.body();
+//                    Intent intent = new Intent(MainActivity.this, UserCenterActivity.class);
+//                    intent.putExtra("user", user);
+//                    startActivity(intent);
+//                }
+//
+//                @Override
+//                public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
+//                    t.printStackTrace();
+//                }
+//            });
+//        } else {
+//            Toast.makeText(this, "系统发生了不知名的错误", Toast.LENGTH_LONG).show();
+//        }
+//    }
 
     // 响应种植虫子按钮
     public void plantBugs(View view) {
@@ -472,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         //在activity执行onSaveInstanceState时执行mapView.onSaveInstanceState (outState)，保存地图当前的状态
         mapView.onSaveInstanceState(outState);
