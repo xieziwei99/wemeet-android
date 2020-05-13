@@ -53,10 +53,9 @@ public class ChangeLevelActivity extends DialogFragment {
             int toLevel = changeLevel.getSelectedItemPosition()+1;
             assert bug != null;
             Long bugID = bug.getBugProperty().getBugID();
-            Bug newBug = new Bug();
-            newBug.setVirusPoint(new VirusPoint().setStatus(toLevel));
+            bug.setVirusPoint(new VirusPoint().setStatus(toLevel));
             NetworkUtil.getRetrofit().create(BugInterface.class)
-                    .updateBug(bugID, newBug)
+                    .updateBug(bugID, bug)
                     .enqueue(new Callback<ReturnVO>() {
                         @Override
                         public void onResponse(@NonNull Call<ReturnVO> call, @NonNull Response<ReturnVO> response) {
@@ -72,6 +71,7 @@ public class ChangeLevelActivity extends DialogFragment {
             dismiss();
             reloadMap();
             ShowVirusActivity showVirusActivity = new ShowVirusActivity();
+            bundle.putSerializable("bug", bug);
             showVirusActivity.setArguments(bundle);
             assert getFragmentManager() != null;
             showVirusActivity.show(getFragmentManager(),"virus");
