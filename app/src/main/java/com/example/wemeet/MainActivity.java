@@ -15,15 +15,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
@@ -56,7 +47,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import androidx.fragment.app.FragmentManager;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -259,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 + "点击进行捕捉")
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
-                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(null);
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null);
                                                 if (records != null) {
                                                     for (CatcherBugRecord record : records) {
                                                         if (record.getCaughtBug().equals(bugProperty)) {
@@ -287,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                                                         .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
-                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(bug.getVirusPoint());
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null);
                                                 marker.setObject(info);
                                             }
                                             markerList.add(marker);

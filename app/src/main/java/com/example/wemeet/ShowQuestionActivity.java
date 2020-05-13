@@ -1,10 +1,9 @@
 package com.example.wemeet;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,8 +14,6 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
@@ -99,6 +96,11 @@ public class ShowQuestionActivity extends DialogFragment {
             String userAnswer = bundle.getString("userAnswer");
             List<String> answerList = new ArrayList<>(Arrays.asList("A", "B", "C", "D"));
             int checkedIndex = answerList.indexOf(userAnswer);
+            int correctIndex = answerList.indexOf(bug.getChoiceQuestion().getCorrectAnswer().toUpperCase());
+            RadioButton correctButton = (RadioButton) radioGroup.getChildAt(correctIndex);
+            correctButton.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+            correctButton.setTextColor(Color.parseColor("#4CAF50"));
+            correctButton.append("\t\t正确答案");
             ((RadioButton) radioGroup.getChildAt(checkedIndex)).setChecked(true);
             for (int i = 0; i < radioGroup.getChildCount(); i++) {
                 radioGroup.getChildAt(i).setEnabled(false);
@@ -174,6 +176,10 @@ public class ShowQuestionActivity extends DialogFragment {
                             reloadMap();
                         })
                         .setNeutralButton("再看看", (dialogInterface, i) -> {
+                            for (i = 0; i < radioGroup.getChildCount(); i++) {
+                                radioGroup.getChildAt(i).setEnabled(false);
+                            }
+                            submitButton.setEnabled(false);
                             reloadMap();
                         })
                         .create()

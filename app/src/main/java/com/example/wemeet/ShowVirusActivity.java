@@ -11,8 +11,6 @@ import android.widget.TextView;
 
 import com.example.wemeet.pojo.Bug;
 
-import org.w3c.dom.Text;
-
 import androidx.fragment.app.DialogFragment;
 
 public class ShowVirusActivity extends DialogFragment {
@@ -21,7 +19,7 @@ public class ShowVirusActivity extends DialogFragment {
         View view;
         view = inflater.inflate(R.layout.activity_bug_content,container,false);
         Bundle bundle = getArguments();
-        assert bundle != null;
+        assert bundle !=null;
         Bug bug = (Bug) bundle.getSerializable("bug");
         assert bug != null;
         if (bug.getBugProperty().getBugContent().getType() == 4) {

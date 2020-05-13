@@ -1,7 +1,6 @@
 package com.example.wemeet.util;
 
 import com.example.wemeet.pojo.Bug;
-import com.example.wemeet.pojo.VirusPoint;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -13,5 +12,4 @@ public class MarkerInfo {
     private Bug bug;
     private boolean caught;
     private String userAnswer;
-    private VirusPoint virusPoint;
 }
