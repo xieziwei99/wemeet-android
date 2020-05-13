@@ -55,6 +55,8 @@
                 android:hint="@string/no_thank_you"
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine" />
+
+            <include layout="@layout/set_bug_property" />
         </LinearLayout>
     </ScrollView>
 

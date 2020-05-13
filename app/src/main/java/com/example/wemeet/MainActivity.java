@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,11 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.AMapOptions;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
@@ -54,8 +56,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,8 +67,10 @@ public class MainActivity extends AppCompatActivity {
     public AMapLocationClientOption option = null;
     public AMapLocationListener locationListener = null;
     private Marker marker = null;   // 保存新种植的marker
+    private Marker destMarker = null;   // 保存目的marker
     private List<Marker> markerList = new ArrayList<>();    // 保存已经种植的marker列表
     private DrawerLayout mDrawerLayout;     //侧滑菜单
+    private final String tag_networkError = "网络请求错误";
 
 
     @Override
@@ -91,11 +93,25 @@ public class MainActivity extends AppCompatActivity {
 
         //侧栏个人信息
         if(navigationView.getHeaderCount() > 0) {
-            View header = navigationView.getHeaderView(0);
-            ((TextView) header.findViewById(R.id.text_user_id)).append(": " + "id");
-            ((TextView) header.findViewById(R.id.text_user_name)).append(": " + "name");
-            ((TextView) header.findViewById(R.id.text_user_email)).append(": " + "email");
-            ((TextView) header.findViewById(R.id.text_user_score)).append(": " + "score");
+            NetworkUtil.getRetrofit().create(UserInterface.class)
+                    .getUserByEmail(getUserEmail())
+                    .enqueue(new Callback<User>() {
+                        @Override
+                        public void onResponse(Call<User> call, Response<User> response) {
+                            User user = response.body();
+                            assert user != null;
+                            View header = navigationView.getHeaderView(0);
+                            ((TextView) header.findViewById(R.id.text_user_id)).append(": " + user.getId());
+                            ((TextView) header.findViewById(R.id.text_user_name)).append(": " + user.getName());
+                            ((TextView) header.findViewById(R.id.text_user_email)).append(": " + user.getEmail());
+                            ((TextView) header.findViewById(R.id.text_user_score)).append(": " + user.getScore());
+                        }
+
+                        @Override
+                        public void onFailure(Call<User> call, Throwable t) {
+                            Log.e(tag_networkError, "onFailure: getUserByEmail", t);
+                        }
+                    });
         }
 
         navigationView.setCheckedItem(R.id.home);//将首页菜单项设置为默认选中
@@ -107,15 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 item.setChecked(true);
                 switch(item.getItemId()) {
                     case R.id.button_logout://登出
-                        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.remove(LoginActivity.LOGGED_IN);
-                        editor.remove(LoginActivity.USER_EMAIL);
-                        editor.apply();
-
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                        MainActivity.this.finish();
+                        logout();
                 }
                 mDrawerLayout.closeDrawers();//关闭滑动菜单
                 return true;
@@ -146,17 +154,31 @@ public class MainActivity extends AppCompatActivity {
 
         aMap.getUiSettings().setMyLocationButtonEnabled(true);
         aMap.getUiSettings().setScaleControlsEnabled(true);
+        aMap.getUiSettings().setZoomPosition(AMapOptions.ZOOM_POSITION_RIGHT_CENTER);
         aMap.setMyLocationEnabled(true);
+
+        locateMyPosition();
 
         // 对每个marker设置一个点击事件
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
             if (info.getBug() != null) {
-                Intent intent = new Intent(this, ShowQuestionActivity.class);
-                intent.putExtra("bug", info.getBug());
-                intent.putExtra("caught", info.isCaught());
-                intent.putExtra("userAnswer", info.getUserAnswer());
-                startActivity(intent);
+                if(info.getBug().getVirusPoint()!=null){//疫情虫子
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bug",info.getBug());
+                    ShowVirusActivity showVirusActivity = new ShowVirusActivity();
+                    showVirusActivity.setArguments(bundle);
+                    showVirusActivity.show(getSupportFragmentManager(),"vitus");
+                }else {//题目虫子
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("bug", info.getBug());
+                    bundle.putBoolean("caught", info.isCaught());
+                    bundle.putString("userAnswer", info.getUserAnswer());
+                    ShowQuestionActivity showQuestionActivity = new ShowQuestionActivity();
+                    showQuestionActivity.setArguments(bundle);
+                    showQuestionActivity.show(getSupportFragmentManager(), "question");
+
+                }
             }
         });
 
@@ -236,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 + "点击进行捕捉")
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
-                                                info.setBug(bug).setCaught(false).setUserAnswer(null);
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(null);
                                                 if (records != null) {
                                                     for (CatcherBugRecord record : records) {
                                                         if (record.getCaughtBug().equals(bugProperty)) {
@@ -254,18 +276,34 @@ public class MainActivity extends AppCompatActivity {
                                                 double bugLat = bugProperty.getStartLatitude();
                                                 double bugLon = bugProperty.getStartLongitude();
                                                 VirusPoint virusPoint = bug.getVirusPoint();
+
+                                                // 根据不同状态获取不同图标
+                                                int virusIcon;
+                                                switch (virusPoint.getStatus()) {
+                                                    case 1:
+                                                        virusIcon = R.drawable.virus;
+                                                        break;
+                                                    case 2:
+                                                        virusIcon = R.drawable.virus_pink;
+                                                        break;
+                                                    case 3:
+                                                        virusIcon = R.drawable.virus_red;
+                                                        break;
+                                                    default:
+                                                        throw new IllegalStateException("Unexpected value: " + virusPoint.getStatus());
+                                                }
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
-                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米\n种植者 %s\n症状 %s\n发病时间 %s\n其他描述 %s",
+                                                        .snippet(String.format(Locale.CHINA, "距离您大约%.2f米\n种植者 %s\n点击查看详情",
                                                                 MathUtil.getDistance(bugLat, bugLon, userLat, userLon),
-                                                                bugProperty.getPlanter().getName(),
-                                                                virusPoint.getSymptoms(),
-                                                                virusPoint.getDiseaseStartTime(),
-                                                                virusPoint.getDescription()
+                                                                bugProperty.getPlanter().getName()
                                                         ))
-                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
+                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), virusIcon)))
                                                 );
+                                                MarkerInfo info = new MarkerInfo();
+                                                info.setBug(bug).setCaught(false).setUserAnswer(null).setVirusPoint(bug.getVirusPoint());
+                                                marker.setObject(info);
                                             }
                                             markerList.add(marker);
 
@@ -300,8 +338,8 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // 响应登出按钮的事件
-    public void logout(View view) {
+    // 登出按钮
+    public void logout() {
         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.remove(LoginActivity.LOGGED_IN);
@@ -313,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.finish();
     }
 
-    // 响应个人中心按钮的事件
+    // 响应个人中心按钮的事件(如无特殊需求，此函数弃用)
     public void gotoUserCenter(View view) {
         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
         String email = settings.getString(LoginActivity.USER_EMAIL, "error");
@@ -347,17 +385,40 @@ public class MainActivity extends AppCompatActivity {
             marker = aMap.addMarker(new MarkerOptions()
                     .position(new LatLng(aMap.getMyLocation().getLatitude(), aMap.getMyLocation().getLongitude()))
                     .title("种植虫子")
-                    .snippet("长按标记来拖动标记以确定种植位置")
+                    .snippet("长按标记来拖动标记以确定种植位置\n如果需要虫子移动，请长按屏幕设置虫子目的标记点位置")
                     .draggable(true)
             );
             marker.showInfoWindow();
             markerList.forEach(marker1 -> marker1.setClickable(false));
             plantBugButton.setLabelText("确认");
+            aMap.setOnMapLongClickListener(latLng -> {
+                if (destMarker != null) {
+                    destMarker.destroy();
+                }
+                destMarker = aMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title("设置目的位置")
+                        .snippet("长按标记来拖动标记以确定虫子目的位置")
+                        .draggable(true)
+                );
+                destMarker.showInfoWindow();
+            });
         }
         if ("确认".equals(command)) {
+            LatLng startLatLng = marker.getPosition();
+            LatLng destLatLng = null;
+            boolean movable = false;
+            if (destMarker != null) {
+                movable = true;
+                destLatLng = destMarker.getPosition();
+            }
+            marker = null;
+            destMarker = null;
             // 弹窗让用户选择种植虫子的类型
             String[] typeChoices = {getString(R.string.单项选择题), getString(R.string.疫情点)};
             final int[] typeChosen = new int[1];    // FIXME: 2020/3/3 可否更好的解决
+            boolean finalMovable = movable;
+            LatLng finalDestLatLng = destLatLng;
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("WeMeet 选择虫子类型")
                     .setSingleChoiceItems(typeChoices, 0, (dialog, which) -> typeChosen[0] = which)
@@ -373,8 +434,13 @@ public class MainActivity extends AppCompatActivity {
                             default:
                                 break;
                         }
-                        intent.putExtra("lat", marker.getPosition().latitude);
-                        intent.putExtra("lon", marker.getPosition().longitude);
+                        intent.putExtra("lat", startLatLng.latitude);
+                        intent.putExtra("lon", startLatLng.longitude);
+                        if (finalMovable) {
+                            intent.putExtra("movable", true);
+                            intent.putExtra("destLat", finalDestLatLng.latitude);
+                            intent.putExtra("destLon", finalDestLatLng.longitude);
+                        }
                         startActivity(intent);
                     })
                     .create()
@@ -390,36 +456,6 @@ public class MainActivity extends AppCompatActivity {
 //        // 初始视角移动到北邮
 //        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
 //                new LatLng(39.9643, 116.3557), 16, 0, 0)));
-
-        // 定位
-        locationClient = new AMapLocationClient(getApplicationContext());
-        locationListener = location -> {
-            if (location != null) {
-                if (location.getErrorCode() == 0) {
-                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
-                } else {    // 定位失败
-                    Log.e("AMapError", "location Error, ErrCode:"
-                            + location.getErrorCode() + ", errInfo:"
-                            + location.getErrorInfo());
-                }
-            }
-        };
-        locationClient.setLocationListener(locationListener);
-        option = new AMapLocationClientOption();
-        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-                .setOnceLocation(true);
-        locationClient.setLocationOption(option);
-        locationClient.startLocation();
-
-        // 设置option场景
-//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
-//        if (null != locationClient) {
-//            locationClient.setLocationOption(option);
-//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
-//            locationClient.stopLocation();
-//            locationClient.startLocation();
-//        }
     }
 
     @Override
@@ -434,6 +470,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         //在activity执行onDestroy时执行mapView.onDestroy()，销毁地图
         mapView.onDestroy();
+        locationClient.stopLocation();
+        locationClient.onDestroy();
     }
 
     @Override
@@ -477,5 +515,43 @@ public class MainActivity extends AppCompatActivity {
         if (!tempPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, tempPermissions.toArray(new String[0]), 100);
         }
+    }
+
+    private void locateMyPosition() {
+        // 定位
+        locationClient = new AMapLocationClient(getApplicationContext());
+        locationListener = location -> {
+            if (location != null) {
+                if (location.getErrorCode() == 0) {
+                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                    Log.i("TAG-------------", "locateMyPosition: ");
+                } else {    // 定位失败
+                    Log.e("AMapError", "location Error, ErrCode:"
+                            + location.getErrorCode() + ", errInfo:"
+                            + location.getErrorInfo());
+                }
+            }
+        };
+        locationClient.setLocationListener(locationListener);
+        option = new AMapLocationClientOption();
+        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
+                .setOnceLocation(true);
+        locationClient.setLocationOption(option);
+        locationClient.startLocation();
+
+        // 设置option场景
+//        option.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.Transport);
+//        if (null != locationClient) {
+//            locationClient.setLocationOption(option);
+//            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+//            locationClient.stopLocation();
+//            locationClient.startLocation();
+//        }
+    }
+
+    private String getUserEmail() {
+        SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
+        return settings.getString(LoginActivity.USER_EMAIL, "error");
     }
 }
