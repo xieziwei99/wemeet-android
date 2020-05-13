@@ -33,6 +33,7 @@ import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.BugProperty;
 import com.example.wemeet.pojo.CatcherBugRecord;
+import com.example.wemeet.pojo.VirusPoint;
 import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.MarkerInfo;
@@ -265,6 +266,24 @@ public class MainActivity extends AppCompatActivity {
                                                 double userLon = aMap.getMyLocation().getLongitude();
                                                 double bugLat = bugProperty.getStartLatitude();
                                                 double bugLon = bugProperty.getStartLongitude();
+
+                                                VirusPoint virusPoint = bug.getVirusPoint();
+
+                                                // 根据不同状态获取不同图标
+                                                int virusIcon;
+                                                switch (virusPoint.getStatus()) {
+                                                    case 1:
+                                                        virusIcon = R.drawable.virus;
+                                                        break;
+                                                    case 2:
+                                                        virusIcon = R.drawable.virus_pink;
+                                                        break;
+                                                    case 3:
+                                                        virusIcon = R.drawable.virus_red;
+                                                        break;
+                                                    default:
+                                                        throw new IllegalStateException("Unexpected value: " + virusPoint.getStatus());
+                                                }
                                                 marker = aMap.addMarker(new MarkerOptions()
                                                         .position(new LatLng(bugLat, bugLon))
                                                         .title(getString(R.string.疫情点))
@@ -272,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 MathUtil.getDistance(bugLat, bugLon, userLat, userLon),
                                                                 bugProperty.getPlanter().getName()
                                                         ))
-                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.red)))
+                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), virusIcon)))
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
                                                 info.setBug(bug).setCaught(false).setUserAnswer(null);
