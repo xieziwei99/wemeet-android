@@ -9,9 +9,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
-import com.example.wemeet.pojo.VirusPoint;
-
 import androidx.fragment.app.DialogFragment;
+
+import com.example.wemeet.pojo.Bug;
+import com.example.wemeet.pojo.BugInterface;
+import com.example.wemeet.pojo.VirusPoint;
+import com.example.wemeet.util.NetworkUtil;
+import com.example.wemeet.util.ReturnVO;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChangeLevelActivity extends DialogFragment {
     @Override
@@ -21,6 +29,7 @@ public class ChangeLevelActivity extends DialogFragment {
         Bundle bundle = getArguments();
         assert bundle != null;
         VirusPoint virusPoint = (VirusPoint)bundle.getSerializable("virusPoint");
+        Bug bug = (Bug) bundle.getSerializable("bug");
 
         ImageView close = (ImageView) view.findViewById(R.id.close_button);
         close.setOnClickListener(new View.OnClickListener() {
@@ -36,25 +45,31 @@ public class ChangeLevelActivity extends DialogFragment {
         Spinner changeLevel = (Spinner)view.findViewById(R.id.level_change);
         assert virusPoint != null;
         changeLevel.setSelection(virusPoint.getStatus()-1);
-        int toLevel = changeLevel.getSelectedItemPosition()+1;
         Button submitChangeLevel = (Button)view.findViewById(R.id.submit_change_level);
 
-        //----------------------------------变更疫情点等级-------------------------------------
-        //----------------------------不知道怎么把修改的数据保存-----------------------------
         submitChangeLevel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                switch (toLevel){
-                    case 1:
-                        virusPoint.setStatus(1);
-                        break;
-                    case 2:
-                        virusPoint.setStatus(2);
-                        break;
-                    case 3:
-                        virusPoint.setStatus(3);
-                        break;
-                }
+                // 保存 status 到数据库
+                int toLevel = changeLevel.getSelectedItemPosition()+1;
+                assert bug != null;
+                Long bugID = bug.getBugProperty().getBugID();
+                Bug newBug = new Bug();
+                newBug.setVirusPoint(new VirusPoint().setStatus(toLevel));
+                NetworkUtil.getRetrofit().create(BugInterface.class)
+                        .updateBug(bugID, newBug)
+                        .enqueue(new Callback<ReturnVO>() {
+                            @Override
+                            public void onResponse(Call<ReturnVO> call, Response<ReturnVO> response) {
+                                // nothing to do. Maybe something to check
+                            }
+
+                            @Override
+                            public void onFailure(Call<ReturnVO> call, Throwable t) {
+                                t.printStackTrace();
+                            }
+                        });
+
                 dismiss();
                 reloadMap();
                 ShowVirusActivity showVirusActivity = new ShowVirusActivity();
