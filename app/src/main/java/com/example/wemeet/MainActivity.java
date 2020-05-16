@@ -71,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
     private List<Marker> markerList = new ArrayList<>();    // 保存已经种植的marker列表
     private DrawerLayout mDrawerLayout;     //侧滑菜单
     private final String tag_networkError = "网络请求错误";
+    public static double myLon;
+    public static double myLat;
+    public static double range = 5000;  // 5000 内的虫子
+    private boolean located = false;
 
 
     @Override
@@ -221,9 +225,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void showAroundBugs(double userLon, double userLat) {
+    public void showAroundBugs(double userLon, double userLat, double meter) {
         BugInterface request = NetworkUtil.getRetrofit().create(BugInterface.class);
-        request.getAroundBugs(userLon, userLat)
+        request.getAroundBugs(userLon, userLat, meter)
                 .enqueue(new Callback<List<Bug>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Bug>> call, @NonNull Response<List<Bug>> response) {
@@ -446,7 +450,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // 每次start都会重新加载大量虫子（如果有的话）
-        showAroundBugs(116.22, 39.99);
+        if (located) {
+            showAroundBugs(myLon, myLat, range);
+        }
 //        // 初始视角移动到北邮
 //        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
 //                new LatLng(39.9643, 116.3557), 16, 0, 0)));
@@ -517,8 +523,14 @@ public class MainActivity extends AppCompatActivity {
         locationListener = location -> {
             if (location != null) {
                 if (location.getErrorCode() == 0) {
-                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                    if (!located) {
+                        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                                new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                        showAroundBugs(location.getLongitude(), location.getLatitude(), range);
+                        located = true;
+                    }
+                    myLat = location.getLatitude();
+                    myLon = location.getLongitude();
                     Log.i("TAG-------------", "locateMyPosition: ");
                 } else {    // 定位失败
                     Log.e("AMapError", "location Error, ErrCode:"
@@ -530,7 +542,7 @@ public class MainActivity extends AppCompatActivity {
         locationClient.setLocationListener(locationListener);
         option = new AMapLocationClientOption();
         option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-                .setOnceLocation(true);
+                .setInterval(1000 * 60);
         locationClient.setLocationOption(option);
         locationClient.startLocation();
 
