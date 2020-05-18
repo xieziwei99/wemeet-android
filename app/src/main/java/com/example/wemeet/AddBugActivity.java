@@ -14,6 +14,10 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.bigkoo.pickerview.builder.TimePickerBuilder;
 import com.bigkoo.pickerview.view.TimePickerView;
 import com.example.wemeet.pojo.Bug;
@@ -29,9 +33,6 @@ import com.example.wemeet.util.ReturnVO;
 
 import java.sql.Timestamp;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -139,6 +140,7 @@ public class AddBugActivity extends AppCompatActivity {
                         .setDescription(((EditText) findViewById(R.id.editText_description)).getText().toString())
                         .setSymptoms(symptomsEditText.getText().toString())
                         .setDiseaseStartTime(diseaseStartTime)
+                        .setStatus(1)
                         .setType(4)
                         .setPublishTime(new Timestamp(milli));
                 bug.setVirusPoint(virusPoint);

@@ -15,7 +15,7 @@ import retrofit2.http.Query;
 
 public interface BugInterface {
     @GET("getAroundBugs")
-    Call<List<Bug>> getAroundBugs(@Query("userLon") double userLon, @Query("userLat") double userLat);
+    Call<List<Bug>> getAroundBugs(@Query("userLon") double userLon, @Query("userLat") double userLat, @Query("meter") double meter);
 
     @POST("addBug")
     Call<ReturnVO> addBug(@Body Bug bug);

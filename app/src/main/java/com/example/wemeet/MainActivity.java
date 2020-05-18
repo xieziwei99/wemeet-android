@@ -15,6 +15,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
@@ -47,14 +56,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
     private List<Marker> markerList = new ArrayList<>();    // 保存已经种植的marker列表
     private DrawerLayout mDrawerLayout;     //侧滑菜单
     private final String tag_networkError = "网络请求错误";
+    public static double myLon;
+    public static double myLat;
+    public static double range = 5000;  // 5000 内的虫子
+    private boolean located = false;
 
 
     @Override
@@ -85,13 +90,13 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout = findViewById(R.id.drawer_layout);
         ActionBar actionBar = getSupportActionBar();
         NavigationView navigationView = findViewById(R.id.nav_view);
-        if (actionBar!=null){
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         }       //导航按钮的显示
 
         //侧栏个人信息
-        if(navigationView.getHeaderCount() > 0) {
+        if (navigationView.getHeaderCount() > 0) {
             NetworkUtil.getRetrofit().create(UserInterface.class)
                     .getUserByEmail(getUserEmail())
                     .enqueue(new Callback<User>() {
@@ -154,13 +159,13 @@ public class MainActivity extends AppCompatActivity {
         aMap.setOnInfoWindowClickListener(marker -> {
             MarkerInfo info = (MarkerInfo) marker.getObject();
             if (info.getBug() != null) {
-                if(info.getBug().getVirusPoint()!=null){//疫情虫子
+                if (info.getBug().getVirusPoint() != null) {//疫情虫子
                     Bundle bundle = new Bundle();
-                    bundle.putSerializable("bug",info.getBug());
+                    bundle.putSerializable("bug", info.getBug());
                     ShowVirusActivity showVirusActivity = new ShowVirusActivity();
                     showVirusActivity.setArguments(bundle);
-                    showVirusActivity.show(getSupportFragmentManager(),"vitus");
-                }else {//题目虫子
+                    showVirusActivity.show(getSupportFragmentManager(), "vitus");
+                } else {//题目虫子
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("bug", info.getBug());
                     bundle.putBoolean("caught", info.isCaught());
@@ -186,22 +191,22 @@ public class MainActivity extends AppCompatActivity {
     //toolbar的menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_tool_bar,menu);
+        getMenuInflater().inflate(R.menu.menu_tool_bar, menu);
         return true;
     }
 
     //toolbar的事件
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
                 break;
             case R.id.action_setting:
-                Toast.makeText(this,"点击设置" , Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击设置", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.action_help:
-                Toast.makeText(this,"点击了帮助" , Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击了帮助", Toast.LENGTH_SHORT).show();
                 break;
         }
         return true;
@@ -220,9 +225,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void showAroundBugs(double userLon, double userLat) {
+    public void showAroundBugs(double userLon, double userLat, double meter) {
         BugInterface request = NetworkUtil.getRetrofit().create(BugInterface.class);
-        request.getAroundBugs(userLon, userLat)
+        request.getAroundBugs(userLon, userLat, meter)
                 .enqueue(new Callback<List<Bug>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Bug>> call, @NonNull Response<List<Bug>> response) {
@@ -247,13 +252,14 @@ public class MainActivity extends AppCompatActivity {
                                                         .snippet("发布时间：" + bugProperty.getStartTime().toString() + "\n"
                                                                 + "剩余可捉次数：" + bugProperty.getRestLifeCount() + "\n"
                                                                 + "点击进行捕捉")
+                                                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.question)))
                                                 );
                                                 MarkerInfo info = new MarkerInfo();
                                                 info.setBug(bug).setCaught(false).setUserAnswer(null);
                                                 if (records != null) {
                                                     for (CatcherBugRecord record : records) {
                                                         if (record.getCaughtBug().equals(bugProperty)) {
-                                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.gray)));
+                                                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.finish_question)));
                                                             marker.setSnippet("你已经捉过了哦！\n" + "点击可查看详细情况");
                                                             info.setCaught(true).setUserAnswer(record.getUserAnswer());
                                                         }
@@ -444,7 +450,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // 每次start都会重新加载大量虫子（如果有的话）
-        showAroundBugs(116.22, 39.99);
+        if (located) {
+            showAroundBugs(myLon, myLat, range);
+        }
 //        // 初始视角移动到北邮
 //        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
 //                new LatLng(39.9643, 116.3557), 16, 0, 0)));
@@ -515,8 +523,14 @@ public class MainActivity extends AppCompatActivity {
         locationListener = location -> {
             if (location != null) {
                 if (location.getErrorCode() == 0) {
-                    aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
-                            new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                    if (!located) {
+                        aMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition(
+                                new LatLng(location.getLatitude(), location.getLongitude()), 16, 0, 0)));
+                        showAroundBugs(location.getLongitude(), location.getLatitude(), range);
+                        located = true;
+                    }
+                    myLat = location.getLatitude();
+                    myLon = location.getLongitude();
                     Log.i("TAG-------------", "locateMyPosition: ");
                 } else {    // 定位失败
                     Log.e("AMapError", "location Error, ErrCode:"
@@ -528,7 +542,7 @@ public class MainActivity extends AppCompatActivity {
         locationClient.setLocationListener(locationListener);
         option = new AMapLocationClientOption();
         option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy)
-                .setOnceLocation(true);
+                .setInterval(1000 * 60);
         locationClient.setLocationOption(option);
         locationClient.startLocation();
 

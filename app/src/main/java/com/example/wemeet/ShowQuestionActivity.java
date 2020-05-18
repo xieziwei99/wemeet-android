@@ -16,6 +16,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+
 import com.example.wemeet.pojo.Bug;
 import com.example.wemeet.pojo.BugInterface;
 import com.example.wemeet.pojo.ChoiceQuestion;
@@ -28,8 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.DialogFragment;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -199,6 +200,6 @@ public class ShowQuestionActivity extends DialogFragment {
         MainActivity mainActivity = (MainActivity)getActivity();
         assert mainActivity != null;
         mainActivity.aMap.clear();
-        mainActivity.showAroundBugs(116.22, 39.99);
+        mainActivity.showAroundBugs(MainActivity.myLon, MainActivity.myLat, MainActivity.range);
     }
 }
