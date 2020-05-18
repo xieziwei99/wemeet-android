@@ -39,4 +39,18 @@
     <string name="menu_setting">设置</string>
     <string name="menu_help">帮助</string>
     <string name="设置存活时间">设置存活时间（小时）</string>
+    <string name="筛选">筛选</string>
+    <string name="全部">全部</string>
+    <string name="症状">症状</string>
+    <string name="疑似">疑似</string>
+    <string name="确诊">确诊</string>
+    <string name="问题">问题</string>
+    <string name="范围">范围</string>
+    <string name="时间">时间</string>
+    <string name="排序方式">排序方式</string>
+    <string name="默认">默认</string>
+    <string name="价值">价值</string>
+    <string name="热度">热度</string>
+    <string name="清空">清空</string>
+    <string name="确认">确认</string>
 </resources>

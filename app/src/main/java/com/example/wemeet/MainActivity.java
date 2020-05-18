@@ -1,6 +1,7 @@
 package com.example.wemeet;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,17 +13,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -49,6 +43,8 @@ import com.example.wemeet.util.MarkerInfo;
 import com.example.wemeet.util.MathUtil;
 import com.example.wemeet.util.NetworkUtil;
 import com.github.clans.fab.FloatingActionButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -56,9 +52,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static android.view.LayoutInflater.from;
 
 public class MainActivity extends AppCompatActivity {
     MapView mapView = null;
@@ -75,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
     public static double myLat;
     public static double range = 5000;  // 5000 内的虫子
     private boolean located = false;
+    @SuppressLint("InflateParams")
+    private PopupWindow mPopupWindow;
+
 
 
     @Override
@@ -208,8 +217,61 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_help:
                 Toast.makeText(this, "点击了帮助", Toast.LENGTH_SHORT).show();
                 break;
+            case R.id.action_filter:
+                showPopWindow();
+                break;
         }
         return true;
+    }
+
+    //打开筛选器
+    private void showPopWindow(){
+        @SuppressLint("InflateParams") View contentView = from(MainActivity.this).inflate(R.layout.filter,null);    //筛选器View
+        mPopupWindow = new PopupWindow(contentView, DrawerLayout.LayoutParams.MATCH_PARENT, DrawerLayout.LayoutParams.WRAP_CONTENT,true);
+        mPopupWindow.setContentView(contentView);
+        Button clear = contentView.findViewById(R.id.clear_btn);
+        Button confirm = contentView.findViewById(R.id.confirm_btn);
+        ChipGroup typeGroup= contentView.findViewById(R.id.type);//类型筛选
+        ChipGroup rangeGroup = contentView.findViewById(R.id.range);//范围筛选
+        ChipGroup timeGroup = contentView.findViewById(R.id.time);//时间筛选
+        ChipGroup sortGroup = contentView.findViewById(R.id.sort);//排序筛选
+        //设置初始选项
+        initFilter(typeGroup,rangeGroup,timeGroup,sortGroup);
+        typeGroup.check(R.id.symptoms_type);
+        rangeGroup.check(R.id.all_range);
+        timeGroup.check(R.id.all_time);
+        sortGroup.check(R.id.default_sort);
+        clear.setOnClickListener(view -> {
+            typeGroup.check(R.id.all_type);
+            rangeGroup.check(R.id.all_range);
+            timeGroup.check(R.id.all_time);
+            sortGroup.check(R.id.default_sort);
+            Toast.makeText(this,"点击了清空",Toast.LENGTH_SHORT).show();
+        });
+        confirm.setOnClickListener(view -> {
+            Chip type = contentView.findViewById(typeGroup.getCheckedChipId());
+            Chip range = contentView.findViewById(rangeGroup.getCheckedChipId());
+            Chip time = contentView.findViewById(timeGroup.getCheckedChipId());
+            Chip sort = contentView.findViewById(sortGroup.getCheckedChipId());
+            Toast.makeText(this,"提交的信息为:"
+                    +'\n'+type.getText()
+                    +"\n"+range.getText()
+                    +"\n"+time.getText()
+                    +"\n"+sort.getText(),Toast.LENGTH_LONG).show();
+            mPopupWindow.dismiss();
+        });
+        View toolBar = findViewById(R.id.toolbar);
+//        View rootView = LayoutInflater.from(MainActivity.this).inflate(R.layout.activity_main, null);
+//        mPopupWindow.showAtLocation(rootView, Gravity.TOP, 0, 0);
+        mPopupWindow.showAsDropDown(toolBar);
+    }
+
+    //设置初始选项
+    private void initFilter(ChipGroup type,ChipGroup range,ChipGroup time,ChipGroup sort){
+        //输入参数为当前筛选的内容
+        //使用typeGroup.check(R.id.xxx);来设置当前的选项
+        //例如
+        type.check(R.id.symptoms_type);
     }
 
     // 需要重载回调函数：用户对权限申请做出相应操作后执行
