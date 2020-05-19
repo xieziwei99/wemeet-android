@@ -18,6 +18,15 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
@@ -43,23 +52,16 @@ import com.example.wemeet.util.MarkerInfo;
 import com.example.wemeet.util.MathUtil;
 import com.example.wemeet.util.NetworkUtil;
 import com.github.clans.fab.FloatingActionButton;
-import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean located = false;
     @SuppressLint("InflateParams")
     private PopupWindow mPopupWindow;
-
+    Map<String, Integer> checkedChipIdMap = new HashMap<>();
 
 
     @Override
@@ -225,39 +227,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //打开筛选器
-    private void showPopWindow(){
-        @SuppressLint("InflateParams") View contentView = from(MainActivity.this).inflate(R.layout.filter,null);    //筛选器View
-        mPopupWindow = new PopupWindow(contentView, DrawerLayout.LayoutParams.MATCH_PARENT, DrawerLayout.LayoutParams.WRAP_CONTENT,true);
+    private void showPopWindow() {
+        @SuppressLint("InflateParams") View contentView = from(MainActivity.this).inflate(R.layout.filter, null);    //筛选器View
+        mPopupWindow = new PopupWindow(contentView, DrawerLayout.LayoutParams.MATCH_PARENT, DrawerLayout.LayoutParams.WRAP_CONTENT, true);
         mPopupWindow.setContentView(contentView);
         Button clear = contentView.findViewById(R.id.clear_btn);
         Button confirm = contentView.findViewById(R.id.confirm_btn);
-        ChipGroup typeGroup= contentView.findViewById(R.id.type);//类型筛选
+        ChipGroup typeGroup = contentView.findViewById(R.id.type);//类型筛选
         ChipGroup rangeGroup = contentView.findViewById(R.id.range);//范围筛选
         ChipGroup timeGroup = contentView.findViewById(R.id.time);//时间筛选
         ChipGroup sortGroup = contentView.findViewById(R.id.sort);//排序筛选
         //设置初始选项
         initFilter(typeGroup,rangeGroup,timeGroup,sortGroup);
-        typeGroup.check(R.id.symptoms_type);
-        rangeGroup.check(R.id.all_range);
-        timeGroup.check(R.id.all_time);
-        sortGroup.check(R.id.default_sort);
         clear.setOnClickListener(view -> {
             typeGroup.check(R.id.all_type);
             rangeGroup.check(R.id.all_range);
             timeGroup.check(R.id.all_time);
             sortGroup.check(R.id.default_sort);
-            Toast.makeText(this,"点击了清空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "点击了清空", Toast.LENGTH_SHORT).show();
         });
         confirm.setOnClickListener(view -> {
-            Chip type = contentView.findViewById(typeGroup.getCheckedChipId());
-            Chip range = contentView.findViewById(rangeGroup.getCheckedChipId());
-            Chip time = contentView.findViewById(timeGroup.getCheckedChipId());
-            Chip sort = contentView.findViewById(sortGroup.getCheckedChipId());
-            Toast.makeText(this,"提交的信息为:"
-                    +'\n'+type.getText()
-                    +"\n"+range.getText()
-                    +"\n"+time.getText()
-                    +"\n"+sort.getText(),Toast.LENGTH_LONG).show();
+            checkedChipIdMap.put("type", typeGroup.getCheckedChipId());
+            checkedChipIdMap.put("range", rangeGroup.getCheckedChipId());
+            checkedChipIdMap.put("time", timeGroup.getCheckedChipId());
+            checkedChipIdMap.put("sort", sortGroup.getCheckedChipId());
+//            Chip type = contentView.findViewById(typeGroup.getCheckedChipId());
+//            Chip range = contentView.findViewById(rangeGroup.getCheckedChipId());
+//            Chip time = contentView.findViewById(timeGroup.getCheckedChipId());
+//            Chip sort = contentView.findViewById(sortGroup.getCheckedChipId());
+//            Toast.makeText(this, "提交的信息为:"
+//                    + '\n' + type.getText()
+//                    + "\n" + range.getText()
+//                    + "\n" + time.getText()
+//                    + "\n" + sort.getText(), Toast.LENGTH_LONG).show();
+            filterMarkersOnMap();
             mPopupWindow.dismiss();
         });
         View toolBar = findViewById(R.id.toolbar);
@@ -267,11 +270,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //设置初始选项
-    private void initFilter(ChipGroup type,ChipGroup range,ChipGroup time,ChipGroup sort){
+    private void initFilter(ChipGroup type, ChipGroup range, ChipGroup time, ChipGroup sort) {
         //输入参数为当前筛选的内容
         //使用typeGroup.check(R.id.xxx);来设置当前的选项
         //例如
-        type.check(R.id.symptoms_type);
+        Integer typeChecked = checkedChipIdMap.getOrDefault("type", R.id.all_type);
+        if (typeChecked != null) {
+            type.check(typeChecked);
+        }
+        Integer rangeChecked = checkedChipIdMap.getOrDefault("range", R.id.all_range);
+        if (rangeChecked != null) {
+            range.check(rangeChecked);
+        }
+        Integer timeChecked = checkedChipIdMap.getOrDefault("time", R.id.all_time);
+        if (timeChecked != null) {
+            time.check(timeChecked);
+        }
+        Integer sortChecked = checkedChipIdMap.getOrDefault("sort", R.id.default_sort);
+        if (sortChecked != null) {
+            sort.check(sortChecked);
+        }
     }
 
     // 需要重载回调函数：用户对权限申请做出相应操作后执行
@@ -621,5 +639,57 @@ public class MainActivity extends AppCompatActivity {
     private String getUserEmail() {
         SharedPreferences settings = getSharedPreferences(LoginActivity.PREFS_NAME, 0); // 0 - for private mode
         return settings.getString(LoginActivity.USER_EMAIL, "error");
+    }
+
+    private void filterMarkersOnMap() {
+        for (int i = 0; i < this.markerList.size(); i++) {
+            Marker marker = markerList.get(i);
+            Integer typeChecked = checkedChipIdMap.getOrDefault("type", R.id.all_type);
+            assert typeChecked != null;
+            if (typeChecked.equals(R.id.all_type)) {
+                marker.setVisible(true);
+            }
+            if (typeChecked.equals(R.id.symptoms_type)) {
+                marker.setVisible(isSymptomBugMarker(marker));
+            }
+            if (typeChecked.equals(R.id.suspected_type)) {
+                marker.setVisible(isSuspectedBugMarker(marker));
+            }
+            if (typeChecked.equals(R.id.confirmed_type)) {
+                marker.setVisible(isConfirmedBugMarker(marker));
+            }
+            if (typeChecked.equals(R.id.question_type)) {
+                marker.setVisible(isChoiceQuestionMarker(marker));
+            }
+        }
+    }
+
+    private boolean isSymptomBugMarker(Marker marker) {
+        MarkerInfo info = (MarkerInfo) marker.getObject();
+        if (info.getBug().getVirusPoint() != null) {
+            return info.getBug().getVirusPoint().getStatus() == 1;
+        }
+        return false;
+    }
+
+    private boolean isSuspectedBugMarker(Marker marker) {
+        MarkerInfo info = (MarkerInfo) marker.getObject();
+        if (info.getBug().getVirusPoint() != null) {
+            return info.getBug().getVirusPoint().getStatus() == 2;
+        }
+        return false;
+    }
+
+    private boolean isConfirmedBugMarker(Marker marker) {
+        MarkerInfo info = (MarkerInfo) marker.getObject();
+        if (info.getBug().getVirusPoint() != null) {
+            return info.getBug().getVirusPoint().getStatus() == 3;
+        }
+        return false;
+    }
+
+    private boolean isChoiceQuestionMarker(Marker marker) {
+        MarkerInfo info = (MarkerInfo) marker.getObject();
+        return info.getBug().getChoiceQuestion() != null;
     }
 }
