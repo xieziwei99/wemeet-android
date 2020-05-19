@@ -247,19 +247,29 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "点击了清空", Toast.LENGTH_SHORT).show();
         });
         confirm.setOnClickListener(view -> {
+            Integer checkedRangeId = rangeGroup.getCheckedChipId();
+            switch (checkedRangeId) {
+                case R.id.range1:
+                    MainActivity.range = 500;   // 米
+                    break;
+                case R.id.range2:
+                    MainActivity.range = 5000;
+                    break;
+                case R.id.range3:
+                    MainActivity.range = 10000;
+                    break;
+                case R.id.range4:
+                    MainActivity.range = 10000 * 1000;  // 一万公里
+                    break;
+            }
+            if (!checkedRangeId.equals(checkedChipIdMap.get("range"))) {
+                aMap.clear();
+                showAroundBugs(MainActivity.myLon, MainActivity.myLat, MainActivity.range);
+            }
             checkedChipIdMap.put("type", typeGroup.getCheckedChipId());
             checkedChipIdMap.put("range", rangeGroup.getCheckedChipId());
             checkedChipIdMap.put("time", timeGroup.getCheckedChipId());
             checkedChipIdMap.put("sort", sortGroup.getCheckedChipId());
-//            Chip type = contentView.findViewById(typeGroup.getCheckedChipId());
-//            Chip range = contentView.findViewById(rangeGroup.getCheckedChipId());
-//            Chip time = contentView.findViewById(timeGroup.getCheckedChipId());
-//            Chip sort = contentView.findViewById(sortGroup.getCheckedChipId());
-//            Toast.makeText(this, "提交的信息为:"
-//                    + '\n' + type.getText()
-//                    + "\n" + range.getText()
-//                    + "\n" + time.getText()
-//                    + "\n" + sort.getText(), Toast.LENGTH_LONG).show();
             filterMarkersOnMap();
             mPopupWindow.dismiss();
         });
@@ -399,6 +409,7 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
+                                    filterMarkersOnMap();
                                 }
 
                                 @Override
