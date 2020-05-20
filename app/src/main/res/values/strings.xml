@@ -53,4 +53,8 @@
     <string name="热度">热度</string>
     <string name="清空">清空</string>
     <string name="确认">确认</string>
+    <string name="大范围">大范围</string>
+    <string name="一万米">一万米内</string>
+    <string name="五千米">五千米内</string>
+    <string name="五百米">五百米内</string>
 </resources>

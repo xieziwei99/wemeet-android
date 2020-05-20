@@ -95,7 +95,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
-            android:text="@string/范围" />
+            android:text="@string/五百米" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/range2"
@@ -103,7 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
-            android:text="@string/范围" />
+            android:text="@string/五千米" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/range3"
@@ -111,7 +111,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
-            android:text="@string/范围" />
+            android:text="@string/一万米" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/range4"
@@ -119,7 +119,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checkable="true"
-            android:text="@string/范围" />
+            android:text="@string/大范围" />
 
     </com.google.android.material.chip.ChipGroup>
 
