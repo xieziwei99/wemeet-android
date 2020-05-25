@@ -14,6 +14,7 @@ import com.example.wemeet.pojo.user.User;
 import com.example.wemeet.pojo.user.UserInterface;
 import com.example.wemeet.util.NetworkUtil;
 import com.example.wemeet.util.ReturnVO;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
     public static final String LOGGED_IN = "loggedIn";
     public static final String USER_EMAIL = "userEmail";
+    public int role = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,18 @@ public class LoginActivity extends AppCompatActivity {
         // 监听输入框
         EditText emailInput = findViewById(R.id.input_email);
         EditText passwordInput = findViewById(R.id.input_password);
+        SwitchMaterial roleSwitch = findViewById(R.id.role_switch);
+        roleSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+            if(isChecked){
+                Toast.makeText(getApplicationContext(),"切换至医生登录", Toast.LENGTH_SHORT).show();
+                role = 1;
+                roleSwitch.setText("当前登录身份：医生");
+            }else {
+                Toast.makeText(getApplicationContext(),"切换至普通用户登录",Toast.LENGTH_SHORT).show();
+                role = 0;
+                roleSwitch.setText("当前登录身份：普通用户");
+            }
+        });
 
         EditTextChange editTextChange = new EditTextChange();
         emailInput.addTextChangedListener(editTextChange);

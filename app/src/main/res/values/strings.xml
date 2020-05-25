@@ -57,4 +57,6 @@
     <string name="一万米">一万米内</string>
     <string name="五千米">五千米内</string>
     <string name="五百米">五百米内</string>
+    <string name="医生身份">当前登录身份为：医生</string>
+    <string name="用户身份">当前登录身份为：普通用户</string>
 </resources>
