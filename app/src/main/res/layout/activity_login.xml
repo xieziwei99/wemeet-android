@@ -7,6 +7,7 @@
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -30,7 +31,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        app:srcCompat="@drawable/logo_xzw" />
+        app:srcCompat="@drawable/logo_xzw"
+        android:contentDescription="@string/app_name" />
 
     <EditText
         android:id="@+id/input_email"
@@ -68,6 +70,15 @@
         app:layout_constraintTop_toBottomOf="@+id/input_email"
         tools:targetApi="o"
         tools:textSize="16sp" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/role_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginEnd="24dp"
+        android:text="@string/用户身份"
+        app:useMaterialThemeColors="true" />
 
     <Button
         android:id="@+id/button_login"

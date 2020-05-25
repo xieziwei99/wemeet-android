@@ -51,6 +51,13 @@ public class ShowVirusActivity extends DialogFragment {
         close.setOnClickListener(v -> dismiss());
 
         Button changeLevel = view.findViewById(R.id.change_level);
+        int role = bundle.getInt("role");
+        if(role == 1){
+            changeLevel.setVisibility(View.VISIBLE);
+        }else{
+            changeLevel.setVisibility(View.GONE);
+        }
+
         changeLevel.setOnClickListener(view1 -> {
             bundle.putSerializable("virusPoint",bug.getVirusPoint());
             ChangeLevelActivity changeLevelActivity = new ChangeLevelActivity();
